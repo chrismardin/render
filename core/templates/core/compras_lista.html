@@ -1,0 +1,151 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Inventario / Compras{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Inventario · Compras</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}" class="active">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Historial de compras</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Compra</th>
+              <th>Proveedor</th>
+              <th>Factura</th>
+              <th>Total</th>
+              <th>Condición</th>
+              <th>Estado de pago</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in compras %}
+            <tr>
+              <td>#{{ c.pk }}</td>
+              <td>{{ c.proveedor.nombre }}</td>
+              <td>{{ c.numero_factura|default:"—" }}</td>
+              <td>RD$ {{ c.total }}</td>
+              <td>{{ c.get_condicion_pago_display }}</td>
+              <td>
+                <span class="estado {% if c.estado_pago == 'Pagada' %}ok{% elif c.estado_pago == 'Pendiente' %}bajo{% else %}medio{% endif %}">
+                  {{ c.get_estado_pago_display }}
+                </span>
+              </td>
+              <td>
+                {% if puede_gestionar and c.estado_pago != 'Pagada' %}
+                  <form method="post" action="{% url 'compras_registrar_pago' c.pk %}" style="display:flex; gap:4px;">
+                    {% csrf_token %}
+                    <input type="number" step="0.01" min="0.01" max="{{ c.saldo_pendiente }}" name="monto"
+                           placeholder="Saldo: {{ c.saldo_pendiente }}" style="width:110px; padding:4px 6px; font-size:12px;">
+                    <button type="submit" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Pagar</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="color:#6B7280; font-size:13px;">Todavía no hay compras registradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="settings-side">
+      {% if puede_gestionar %}
+      <div class="card">
+        <div class="card-header">
+          <h3>Registrar compra</h3>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.proveedor.id_for_label }}">Proveedor</label>
+              {{ form.proveedor }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.orden.id_for_label }}">Orden de compra (opcional)</label>
+              {{ form.orden }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.recepcion.id_for_label }}">Recepción (opcional)</label>
+              {{ form.recepcion }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.numero_factura.id_for_label }}">Factura</label>
+              {{ form.numero_factura }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.fecha.id_for_label }}">Fecha</label>
+              {{ form.fecha }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.subtotal.id_for_label }}">Subtotal</label>
+              {{ form.subtotal }}
+            </div>
+            <div class="field-group">
+              <label for="{{ form.impuestos.id_for_label }}">Impuestos</label>
+              {{ form.impuestos }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.total.id_for_label }}">Total</label>
+              {{ form.total }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.condicion_pago.id_for_label }}">Condición de pago</label>
+              {{ form.condicion_pago }}
+            </div>
+          </div>
+          <button type="submit" class="btn-add" style="margin-top: 10px;">Registrar compra</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

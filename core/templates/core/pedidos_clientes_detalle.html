@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Pedido #{{ pedido.pk }}{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Pedido de cliente #{{ pedido.pk }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'ventas' %}">Ventas</a>
+    <a href="{% url 'pedidos_clientes_lista' %}" class="active">Pedidos de Clientes</a>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Cliente: {{ pedido.cliente.nombre }}</h3>
+        </div>
+        <p style="font-size:12px; color:#6B7280; margin-top:-6px;">
+          Estado:
+          <span class="estado {% if pedido.estado == 'Completado' %}ok{% elif pedido.estado == 'Cancelado' %}bajo{% else %}medio{% endif %}">{{ pedido.estado }}</span>
+          · Creado el {{ pedido.fecha_creacion|date:"d/m/Y H:i" }}
+          {% if pedido.fecha_entrega %}· Entrega solicitada: {{ pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}
+          {% if pedido.fecha_vigencia %}· Vigencia: {{ pedido.fecha_vigencia|date:"d/m/Y" }}{% endif %}
+          · Procesamiento: {{ pedido.estado_procesamiento }}
+          {% if pedido.creado_por %}· Registrado por {{ pedido.creado_por.username }}{% endif %}
+        </p>
+        {% if pedido.observaciones %}
+          <p style="font-size:13px; color:#374151;">{{ pedido.observaciones }}</p>
+        {% endif %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Subtotal</th>
+              <th>Facturado</th>
+              <th>Pendiente</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in detalles %}
+            <tr>
+              <td>{{ d.producto.nombre }}</td>
+              <td>{{ d.cantidad }}</td>
+              <td>RD$ {{ d.precio_unitario }}</td>
+              <td>RD$ {{ d.subtotal }}</td>
+              <td>{{ d.cantidad_facturada }}</td>
+              <td>{{ d.cantidad_pendiente }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="table-total">
+          <span>Total</span>
+          <strong>RD$ {{ pedido.total }}</strong>
+        </div>
+
+
+        {% if puede_gestionar and pedido.estado == 'Confirmado' and not pedido.completamente_facturado %}
+          <a href="{% url 'pedidos_clientes_despachar' pedido.pk %}" class="btn-add" style="margin-top: 14px; display:inline-block; text-decoration:none;">Despachar / Facturar</a>
+        {% endif %}
+
+        {% if puede_gestionar and 'Confirmado' in transiciones_disponibles %}
+          <form method="post" action="{% url 'pedidos_clientes_cambiar_estado' pedido.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="Confirmado">
+            <button type="submit" class="btn-add" style="margin-top: 14px;">Confirmar pedido</button>
+          </form>
+        {% endif %}
+        {% if puede_gestionar and 'Rechazado' in transiciones_disponibles %}
+          <form method="post" action="{% url 'pedidos_clientes_cambiar_estado' pedido.pk %}" style="display:inline;" onsubmit="return confirm('¿Rechazar este pedido?');">
+            {% csrf_token %}<input type="hidden" name="estado" value="Rechazado">
+            <button type="submit" class="btn-danger" style="margin-top: 14px;">Rechazar pedido</button>
+          </form>
+        {% endif %}
+        {% if puede_gestionar and 'Completado' in transiciones_disponibles %}
+          <form method="post" action="{% url 'pedidos_clientes_cambiar_estado' pedido.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="Completado">
+            <button type="submit" class="btn-add" style="margin-top: 14px;">Marcar como completado</button>
+          </form>
+        {% endif %}
+        {% if puede_gestionar and 'Cancelado' in transiciones_disponibles %}
+          <form method="post" action="{% url 'pedidos_clientes_cambiar_estado' pedido.pk %}" style="display:inline;"
+                onsubmit="return confirm('¿Cancelar este pedido?');">
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="Cancelado">
+            <button type="submit" class="btn-danger" style="margin-top: 14px;">Cancelar pedido</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="settings-side">
+      <div class="card">
+        <div class="card-header">
+          <h3>Sobre este pedido</h3>
+        </div>
+        <p style="font-size:13px; color:#6B7280;">
+          Un pedido es una solicitud del cliente y todavía no es una venta: no descuenta inventario.
+          Cuando corresponda despachar y facturar lo pedido, esa operación se registra por separado en Ventas.
+        </p>
+      </div>
+
+      {% if pedido.ventas.all %}
+        <div class="card">
+          <div class="card-header">
+            <h3>Ventas generadas de este pedido</h3>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Venta</th><th>Fecha</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+              {% for v in pedido.ventas.all %}
+              <tr>
+                <td><a href="{% url 'venta_factura' v.id %}">{{ v.numero_factura|default:v.id }}</a></td>
+                <td>{{ v.fecha|date:"d/m/Y" }}</td>
+                <td>RD$ {{ v.total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

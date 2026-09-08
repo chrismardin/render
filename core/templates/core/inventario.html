@@ -1,0 +1,321 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Inventario{% endblock %}
+
+{% block content %}
+
+    <!-- ============================================================
+       BARRA SUPERIOR (TOPBAR)
+       Título de la página + zona de usuario/notificaciones.
+       Estilos en styles.css, SECCION 2.
+       ============================================================ -->
+    <header class="topbar">
+    <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73L13 2a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73L11 22a2 2 0 0 0 2 0l7-4.27A2 2 0 0 0 21 16z"/></svg> Inventario</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+    <!-- ============================================================
+       TARJETAS KPI (los recuadros con números grandes arriba)
+       Cada <div class="kpi-card"> es una tarjeta.
+       Estilos en styles.css, SECCION 4.
+       ============================================================ -->
+  <section class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-top">
+        <span class="kpi-icon blue"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/></svg></span>
+        <span class="label">Total Productos</span>
+      </div>
+      <div class="value">{{ total_productos }}</div>
+      <div class="sub">En el catalogo</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-top">
+        <span class="kpi-icon red"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span class="label">Bajo Stock</span>
+      </div>
+      <div class="value">{{ bajo_stock }}</div>
+      <div class="sub">Productos por reponer</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-top">
+        <span class="kpi-icon green"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v22M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H7"/></svg></span>
+        <span class="label">Valor Total Inventario</span>
+      </div>
+      <div class="value">RD$ {{ valor_total }}</div>
+      <div class="sub">Al costo de compra</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-top">
+        <span class="kpi-icon orange"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+        <span class="label">Movimientos Registrados</span>
+      </div>
+      <div class="value">{{ total_movimientos }}</div>
+      <div class="sub">Entradas y salidas recientes</div>
+    </div>
+  </section>
+
+    <!-- ============================================================
+       PESTAÑAS (TABS)
+       Al hacer clic, el JavaScript de abajo (función mostrarTab)
+       oculta/muestra el bloque correspondiente.
+       Estilos en styles.css, SECCION 3.
+       ============================================================ -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="stock" onclick="mostrarTab('stock', this)">Stock Actual</button>
+    <button class="tab-btn" data-tab="movimiento" onclick="mostrarTab('movimiento', this)">Movimiento De Stock</button>
+    <button class="tab-btn" data-tab="historial" onclick="mostrarTab('historial', this)">Historial</button>
+    {% if puede_ver_compras %}<a href="{% url 'compras_ordenes' %}">Compras y Proveedores</a>{% endif %}
+  </div>
+
+  <!-- ===== TAB: STOCK ACTUAL ===== -->
+  <section id="tab-stock" class="tab-content">
+      <!-- ============================================================
+       PANEL PRINCIPAL (tabla / contenido de esta página)
+       Estilos en styles.css, SECCION 6 (panel) y SECCION 7 (tabla).
+       ============================================================ -->
+  <div class="panel">
+      <div class="panel-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <input type="text" id="buscar-producto" placeholder="Buscar producto..." onkeyup="filtrarTabla()">
+        </div>
+        <button class="btn-add" onclick="mostrarTab('movimiento', document.querySelector('[data-tab=movimiento]'))">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Registrar movimiento
+        </button>
+      </div>
+
+      <table id="tabla-stock">
+        <thead>
+          <tr>
+            <th>SKU/Cod</th>
+            <th>Producto</th>
+            <th>Categoria</th>
+            <th>Stock Actual</th>
+            <th>Stock Minimo</th>
+            <th>Estado</th>
+            <th>Ultima Actualizacion</th>
+          </tr>
+        </thead>
+        <tbody>
+   
+            <!--
+          {% for producto in productos %} ... {% endfor %}
+             Esto repite la fila <tr> UNA VEZ POR CADA producto que
+             haya en la base de datos (la lista "productos" la manda
+             la función inventario() en views.py).
+
+             Si quieres agregar una columna nueva a la tabla:
+             1. Agrega el <th>NombreColumna</th> arriba en el <thead>.
+             2. Agrega aquí abajo un <td>{{ producto.tu_campo }}</td>
+                (tu_campo debe existir en models.py, dentro de Producto).
+            --> 
+
+          {% for producto in productos %}
+          <tr>
+            <td>{{ producto.sku }}</td>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.categoria }}</td>
+            <td>{{ producto.stock }}</td>
+            <td>{{ producto.stock_minimo }}</td>
+            <td>
+              {# Este {% if %}/{% elif %}/{% else %} decide qué "pastilla" de color mostrar segun el estado del stock #}
+              {% if producto.estado_stock == "Optimo" %}
+                <span class="estado ok">Optimo</span>
+              {% elif producto.estado_stock == "Moderado" %}
+                <span class="estado medio">Moderado</span>
+              {% else %}
+                <span class="estado bajo">Bajo Stock</span>
+              {% endif %}
+            </td>
+            <td>{{ producto.fecha_creacion|date:"d-m-Y" }}</td>
+          </tr>
+          {% empty %}
+          {# {% empty %} se muestra SOLO si la lista "productos" esta vacia #}
+          <tr>
+            <td colspan="7">Todavia no hay productos registrados.</td>
+          </tr>
+          {% endfor %}
+          {# fin del {% for producto in productos %} #}
+        </tbody>
+      </table>
+    </div>
+
+      <!-- ============================================================
+       ALERTAS DEL MODULO IA
+       Estilos en styles.css, SECCION 9.
+       ============================================================ -->
+  <div class="alerts">
+      <h3>Alertas inteligentes</h3>
+      <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Quedan menos de 10 unidades de Lapicero Azul (A00L1).</p>
+      <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> El producto Sacapuntas está por debajo del stock mínimo y debe reponerse.</p>
+      <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg> Recomendación: aumentar el pedido de Notebooks para el próximo mes por demanda proyectada.</p>
+    </div>
+  </section>
+
+  <!-- ===== TAB: MOVIMIENTO DE STOCK ===== -->
+  <section id="tab-movimiento" class="tab-content" style="display:none;">
+    <div class="panel">
+      <h3 style="margin-bottom:16px;">Registrar Entrada o Salida</h3>
+
+            <!-- ============================================================
+           FORMULARIO
+           Cada campo viene del archivo forms.py (Django genera
+           el <input>/<select> automáticamente con {{ form.campo }}).
+           Estilos en styles.css, SECCION 10.
+           ============================================================ -->
+      <form method="post">
+        {% csrf_token %}
+        <div class="filters-row">
+          <div class="field-group">
+            <label>Producto</label>
+            {{ form.producto }}
+          </div>
+          <div class="field-group">
+            <label>Tipo</label>
+            {{ form.tipo }}
+          </div>
+          <div class="field-group">
+            <label>Cantidad</label>
+            {{ form.cantidad }}
+          </div>
+          <div class="field-group" style="flex:2;">
+            <label>Motivo</label>
+            {{ form.motivo }}
+          </div>
+          <button type="submit" class="btn-add">Registrar</button>
+        </div>
+
+        {% if form.errors %}
+        <div class="alerts" style="background:#fbe1e1; margin-top:10px;">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <p class="alert-danger"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {{ field.label }}: {{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-bottom:16px;">Ultimos Movimientos</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in movimientos %}
+          <tr>
+            <td>{{ mov.fecha|date:"d-m-Y H:i" }}</td>
+            <td>{{ mov.producto.nombre }}</td>
+            <td>
+              {% if mov.tipo == "Entrada" %}
+                <span class="estado ok">Entrada</span>
+              {% else %}
+                <span class="estado bajo">Salida</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.cantidad }}</td>
+            <td>{{ mov.motivo|default:"--" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5">Todavia no hay movimientos registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== TAB: HISTORIAL ===== -->
+  <section id="tab-historial" class="tab-content" style="display:none;">
+    <div class="panel">
+      <div class="panel-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <input type="text" placeholder="Buscar en historial...">
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Producto</th>
+            <th>Categoria</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in historial %}
+          <tr>
+            <td>{{ mov.fecha|date:"d-m-Y H:i" }}</td>
+            <td>{{ mov.producto.nombre }}</td>
+            <td>{{ mov.producto.categoria }}</td>
+            <td>
+              {% if mov.tipo == "Entrada" %}
+                <span class="estado ok">Entrada</span>
+              {% else %}
+                <span class="estado bajo">Salida</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.cantidad }}</td>
+            <td>{{ mov.motivo|default:"--" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">Todavia no hay historial de movimientos.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- ============================================================
+     JAVASCRIPT DE ESTA PAGINA
+     Aquí van las funciones que responden a clics, búsquedas,
+     pestañas (tabs), etc. Cada función tiene un comentario
+     arriba explicando qué hace.
+     ============================================================ -->
+<script>
+  // Se ejecuta cuando el usuario hace clic en una pestaña (Stock Actual / Movimiento / Historial).
+  // tabId = el nombre de la pestaña (ej: "stock"), btn = el boton en el que se hizo clic.
+  // Usa los ids "tab-stock", "tab-movimiento", "tab-historial" que estan en los <div> de arriba.
+  function mostrarTab(tabId, btn) {
+    // Oculta todas las pestañas...
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    // ...y muestra solo la que se pidio
+    document.getElementById('tab-' + tabId).style.display = 'block';
+
+    // Le quita el estilo "activo" a todos los botones de pestaña...
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    // ...y se lo pone solo al que se acaba de presionar
+    btn.classList.add('active');
+  }
+
+  // Se ejecuta cada vez que el usuario escribe algo en el buscador de "Stock Actual"
+  // (input con id="buscar-producto"). Oculta las filas de la tabla que no coincidan.
+  function filtrarTabla() {
+    const texto = document.getElementById('buscar-producto').value.toLowerCase();
+    const filas = document.querySelectorAll('#tabla-stock tbody tr');
+    filas.forEach(fila => {
+      // Si el texto de la fila NO contiene lo que se escribio, se oculta
+      fila.style.display = fila.textContent.toLowerCase().includes(texto) ? '' : 'none';
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+{% block title %}Cromf Finanzas - Impuestos{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/impuestos_ia.css' %}">{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <h1>
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 3h16v18H4z"/><path d="M8 7h8M8 11h8M8 15h3"/><path d="m14 16 2 2 4-5"/></svg>
+    Impuestos
+  </h1>
+  <div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div>
+</header>
+
+{% if messages %}
+<div class="module-messages">
+  {% for message in messages %}<div class="module-message {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<section class="kpi-row tax-kpi-row">
+  <div class="kpi-card blue">
+    <div class="kpi-top"><span class="kpi-icon blue">%</span><span class="label">ITBIS Ventas</span></div>
+    <div class="value">RD$ {{ datos_itbis.itbis_ventas|floatformat:2|intcomma }}</div>
+    <div class="sub">Generado en ventas del período</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-top"><span class="kpi-icon green">−</span><span class="label">Crédito Fiscal Compras</span></div>
+    <div class="value">RD$ {{ datos_itbis.credito_fiscal_compras|floatformat:2|intcomma }}</div>
+    <div class="sub">Impuestos registrados en Compras</div>
+  </div>
+  <div class="kpi-card orange">
+    <div class="kpi-top"><span class="kpi-icon orange">=</span><span class="label">ITBIS Neto Estimado</span></div>
+    <div class="value">RD$ {{ datos_itbis.itbis_neto|floatformat:2|intcomma }}</div>
+    <div class="sub">ITBIS ventas menos crédito fiscal</div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-top"><span class="kpi-icon red">2%</span><span class="label">Retención Tarjetas</span></div>
+    <div class="value">RD$ {{ datos_itbis.retencion_tarjetas|floatformat:2|intcomma }}</div>
+    <div class="sub">Estimación informativa sobre ventas con tarjeta</div>
+  </div>
+  <div class="kpi-card purple">
+    <div class="kpi-top"><span class="kpi-icon purple">27%</span><span class="label">ISR Empresarial Estimado</span></div>
+    <div class="value">RD$ {{ datos_isr.isr_empresarial|floatformat:2|intcomma }}</div>
+    <div class="sub">Año {{ anio_actual }}</div>
+  </div>
+</section>
+
+<div class="tabs tax-tabs">
+  <button class="tab-btn active" data-tax-tab="itbis" type="button">ITBIS</button>
+  <button class="tab-btn" data-tax-tab="isr" type="button">ISR Empresarial</button>
+  <button class="tab-btn" data-tax-tab="607" type="button">Pre-607</button>
+  <button class="tab-btn" data-tax-tab="606" type="button">Resumen 606</button>
+</div>
+
+<section id="tax-itbis" class="tax-tab-panel">
+  <div class="panel">
+    <div class="card-header">
+      <div>
+        <h3>ITBIS del período</h3>
+        <span class="editar-link">{{ desde|date:'d/m/Y' }} - {{ hasta|date:'d/m/Y' }}</span>
+      </div>
+    </div>
+    <div class="tax-filter-wrap">
+      <form method="get" class="tax-filter-form">
+        <div class="field-group"><label>Desde</label><input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}"></div>
+        <div class="field-group"><label>Hasta</label><input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></div>
+        <button class="btn-secundario" type="submit">Aplicar período</button>
+      </form>
+    </div>
+    <table>
+      <thead><tr><th>Concepto</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>Ventas gravadas (subtotal)</td><td>RD$ {{ datos_itbis.ventas_gravadas|floatformat:2|intcomma }}</td></tr>
+        <tr><td>ITBIS generado en ventas</td><td>RD$ {{ datos_itbis.itbis_ventas|floatformat:2|intcomma }}</td></tr>
+        <tr><td>(-) Crédito fiscal de compras</td><td>RD$ {{ datos_itbis.credito_fiscal_compras|floatformat:2|intcomma }}</td></tr>
+        <tr><td>ITBIS neto antes de retención</td><td>RD$ {{ datos_itbis.itbis_neto|floatformat:2|intcomma }}</td></tr>
+        <tr><td>(-) Retención tarjetas 2% (informativa)</td><td>RD$ {{ datos_itbis.retencion_tarjetas|floatformat:2|intcomma }}</td></tr>
+        <tr class="tax-total-row"><td><strong>ITBIS neto después de retención</strong></td><td><strong>RD$ {{ datos_itbis.itbis_neto_despues_retencion|floatformat:2|intcomma }}</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="tax-note">Estimación administrativa basada en las ventas y compras registradas en el sistema. La declaración fiscal definitiva debe validarse con los comprobantes y criterios contables correspondientes.</p>
+  </div>
+</section>
+
+<section id="tax-isr" class="tax-tab-panel" style="display:none;">
+  <div class="panel">
+    <div class="card-header">
+      <div><h3>ISR Empresarial - Año {{ anio_actual }}</h3><span class="editar-link">Estimación sobre la renta neta registrada</span></div>
+      {% if puede_crear %}
+      <form method="post">{% csrf_token %}<input type="hidden" name="desde" value="{{ desde|date:'Y-m-d' }}"><input type="hidden" name="hasta" value="{{ hasta|date:'Y-m-d' }}"><button type="submit" class="btn-add">Generar Reporte PDF</button></form>
+      {% endif %}
+    </div>
+    <table>
+      <thead><tr><th>Concepto</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>Ingresos del año</td><td>RD$ {{ datos_isr.total_ingresos_anio|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Gastos del año</td><td>RD$ {{ datos_isr.total_gastos_anio|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Renta neta estimada</td><td>RD$ {{ datos_isr.renta_neta|floatformat:2|intcomma }}</td></tr>
+        <tr><td><strong>ISR empresarial estimado (27%)</strong></td><td><strong>RD$ {{ datos_isr.isr_empresarial|floatformat:2|intcomma }}</strong></td></tr>
+        <tr><td>ISR liquidado año anterior</td><td>RD$ {{ empresa.isr_ano_anterior|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Anticipo mensual estimado (1/12)</td><td>RD$ {{ anticipo_mensual|floatformat:2|intcomma }}</td></tr>
+      </tbody>
+    </table>
+    <p class="tax-note">El valor del ISR del año anterior se configura en Configuración → Datos de la Empresa.</p>
+  </div>
+
+  {% if reportes_impuestos %}
+  <div class="panel">
+    <div class="card-header"><h3>Reportes de Impuestos</h3><span class="editar-link">Últimos 10</span></div>
+    <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Archivo</th></tr></thead><tbody>
+      {% for r in reportes_impuestos %}<tr><td>{{ r.nombre }}</td><td>{{ r.fecha_generacion|date:'d/m/Y H:i' }}</td><td>{% if r.archivo %}<a class="btn-secundario" href="{{ r.archivo.url }}" target="_blank">Descargar</a>{% endif %}</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+</section>
+
+<section id="tax-607" class="tax-tab-panel" style="display:none;">
+  <div class="panel">
+    <div class="card-header">
+      <div>
+        <h3>Pre-607 — Preparación de ventas</h3>
+        <span class="editar-link">{{ desde|date:'d/m/Y' }} - {{ hasta|date:'d/m/Y' }}</span>
+      </div>
+    </div>
+    <p class="tax-note">Exportación interna basada en las ventas registradas. No fabrica ni sustituye un e-NCF autorizado por DGII y debe validarse antes de cualquier presentación oficial.</p>
+    <form method="get" class="tax-filter-form" style="margin-bottom:16px;">
+      <div class="field-group"><label>Desde</label><input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}"></div>
+      <div class="field-group"><label>Hasta</label><input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></div>
+      <button class="btn-add green" type="submit" formaction="{% url 'impuestos_607_txt' %}">Descargar TXT</button>
+      <button class="btn-secundario" type="submit" formaction="{% url 'impuestos_607_pdf' %}">PDF de revisión</button>
+    </form>
+    <table>
+      <thead><tr><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>RNC/Cédula</th><th>Subtotal</th><th>ITBIS</th><th>Total</th></tr></thead>
+      <tbody>
+      {% for v in ventas_607 %}
+        <tr><td>{{ v.tipo_comprobante }}-{{ v.numero_factura }}</td><td>{{ v.fecha|date:'d/m/Y' }}</td><td>{{ v.cliente_nombre|default:'Consumidor final' }}</td><td>{{ v.cliente_rnc_cedula|default:'--' }}</td><td>RD$ {{ v.subtotal|floatformat:2|intcomma }}</td><td>RD$ {{ v.itbs|floatformat:2|intcomma }}</td><td>RD$ {{ v.total|floatformat:2|intcomma }}</td></tr>
+      {% empty %}<tr><td colspan="7">No hay ventas en el período.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tax-606" class="tax-tab-panel" style="display:none;">
+  <div class="panel">
+    <div class="card-header"><div><h3>Resumen 606 — Compras registradas</h3><span class="editar-link">Preparación interna desde Compras + Proveedores</span></div></div>
+    <p class="tax-note">Este resumen aprovecha el módulo de Compras de Mónica. Muestra RNC, factura, subtotal e ITBIS de las compras, pero no se presenta como archivo oficial 606 porque el ERP todavía no captura todos los campos fiscales requeridos para ese envío.</p>
+    <table>
+      <thead><tr><th>Fecha</th><th>Proveedor</th><th>RNC</th><th>Factura/NCF</th><th>Subtotal</th><th>ITBIS</th><th>Total</th></tr></thead>
+      <tbody>
+      {% for c in compras_606 %}
+        <tr><td>{{ c.fecha|date:'d/m/Y' }}</td><td>{{ c.proveedor.nombre }}</td><td>{{ c.proveedor.rnc|default:'--' }}</td><td>{{ c.numero_factura|default:'--' }}</td><td>RD$ {{ c.subtotal|floatformat:2|intcomma }}</td><td>RD$ {{ c.impuestos|floatformat:2|intcomma }}</td><td>RD$ {{ c.total|floatformat:2|intcomma }}</td></tr>
+      {% empty %}<tr><td colspan="7">No hay compras registradas en el período.</td></tr>{% endfor %}
+      </tbody>
+      <tfoot><tr><td colspan="4"><strong>Totales</strong></td><td><strong>RD$ {{ totales_606.subtotal|floatformat:2|intcomma }}</strong></td><td><strong>RD$ {{ totales_606.itbis|floatformat:2|intcomma }}</strong></td><td><strong>RD$ {{ totales_606.total|floatformat:2|intcomma }}</strong></td></tr></tfoot>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const buttons = document.querySelectorAll('[data-tax-tab]');
+  const panels = {itbis: document.getElementById('tax-itbis'), isr: document.getElementById('tax-isr'), '607': document.getElementById('tax-607'), '606': document.getElementById('tax-606')};
+  function show(tab) {
+    buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.taxTab === tab));
+    Object.entries(panels).forEach(([name, panel]) => { if (panel) panel.style.display = name === tab ? '' : 'none'; });
+  }
+  buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.taxTab)));
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get('tab');
+  if (requested && panels[requested]) show(requested);
+});
+</script>
+{% endblock %}

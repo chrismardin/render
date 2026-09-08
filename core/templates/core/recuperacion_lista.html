@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Recuperación de contraseñas{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="10" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Recuperación de contraseñas
+    </h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px; word-break: break-word;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'usuarios_lista' %}">Usuarios</a>
+    {% if puede_gestionar_roles %}<a href="{% url 'roles_lista' %}">Roles y Permisos</a>{% endif %}
+    <a href="{% url 'recuperacion_lista' %}" class="active">Recuperación de contraseñas</a>
+  </div>
+
+  <p style="color:#6B7280; font-size:13px; margin-bottom: 4px;">
+    Autoriza o rechaza las solicitudes de recuperación de contraseña. La contraseña nueva siempre la define el propio usuario.
+  </p>
+
+  <section class="kpi-row">
+    <a href="{% url 'recuperacion_lista' %}?estado=Pendiente" class="kpi-card orange" style="text-decoration:none; display:block;">
+      <div class="label">PENDIENTES</div>
+      <div class="value">{{ conteos.Pendiente }}</div>
+    </a>
+    <a href="{% url 'recuperacion_lista' %}?estado=Aprobada" class="kpi-card green" style="text-decoration:none; display:block;">
+      <div class="label">APROBADAS</div>
+      <div class="value">{{ conteos.Aprobada }}</div>
+    </a>
+    <a href="{% url 'recuperacion_lista' %}?estado=Rechazada" class="kpi-card red" style="text-decoration:none; display:block;">
+      <div class="label">RECHAZADAS</div>
+      <div class="value">{{ conteos.Rechazada }}</div>
+    </a>
+    <a href="{% url 'recuperacion_lista' %}?estado=Completada" class="kpi-card purple" style="text-decoration:none; display:block;">
+      <div class="label">COMPLETADAS</div>
+      <div class="value">{{ conteos.Completada }}</div>
+    </a>
+  </section>
+
+  <div class="panel">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="section-label">
+          Solicitudes
+          {% if filtro_actual %}· filtrando por "{{ filtro_actual }}"{% endif %}
+        </span>
+      </div>
+      {% if filtro_actual %}
+        <a href="{% url 'recuperacion_lista' %}" class="btn-secundario" style="padding: 6px 14px; font-size: 12px;">Quitar filtro</a>
+      {% endif %}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Fecha de solicitud</th>
+          <th>Estado</th>
+          <th>Resuelta por</th>
+          <th>Fecha de resolución</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitudes %}
+        <tr>
+          <td>{{ s.usuario.username }}</td>
+          <td>{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+          <td>
+            <span class="estado
+              {% if s.estado == 'Pendiente' %}medio
+              {% elif s.estado == 'Rechazada' %}bajo
+              {% else %}ok{% endif %}">
+              {{ s.estado }}
+            </span>
+          </td>
+          <td>{{ s.administrador_resolutor.username|default:"—" }}</td>
+          <td>{{ s.fecha_resolucion|date:"d/m/Y H:i"|default:"—" }}</td>
+          <td>
+            {% if s.estado == 'Pendiente' %}
+              <form method="post" action="{% url 'recuperacion_autorizar' s.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-add" style="padding: 4px 10px; font-size: 12px;">Autorizar</button>
+              </form>
+              <form method="post" action="{% url 'recuperacion_rechazar' s.pk %}" style="display: inline;"
+                    onsubmit="return confirm('¿Rechazar la solicitud de {{ s.usuario.username }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger" style="padding: 4px 10px; font-size: 12px;">Rechazar</button>
+              </form>
+            {% else %}
+              <span style="color:#9CA3AF; font-size:12px;">Sin acciones</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="color:#6B7280; font-size:13px;">No hay solicitudes en esta vista.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel" style="margin-top: 18px;">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="section-label">Frecuencia de solicitudes por usuario</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Solicitudes totales</th>
+          <th>Última solicitud</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in frecuencia %}
+        <tr>
+          <td>{{ f.usuario__username }}</td>
+          <td>{{ f.total }}</td>
+          <td>{{ f.ultima|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="color:#6B7280; font-size:13px;">Todavía no hay solicitudes registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

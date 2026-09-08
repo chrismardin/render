@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+{% block title %}Cromf Finanzas - {{ cliente.nombre }}{% endblock %}
+{% block content %}
+
+  <header class="topbar">
+    <h1>{{ cliente.nombre }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'clientes' %}" class="active">Directorio General</a>
+    {% if puede_ver_pedidos_clientes %}<a href="{% url 'pedidos_clientes_lista' %}">Pedidos de Clientes</a>{% endif %}
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Información del cliente</h3>
+        </div>
+        <p style="font-size:13px; color:#374151;">
+          Empresa: {{ cliente.empresa|default:"--" }}
+          · Teléfono: {{ cliente.telefono|default:"--" }}
+          · RNC/Cédula: {{ cliente.rnc_cedula|default:"--" }}
+          · Condición fiscal: {{ cliente.get_condicion_fiscal_display }}
+          · Tipo: {{ cliente.tipo }}
+        </p>
+        <p style="font-size:12px; color:#6B7280;">
+          Total comprado (histórico): RD$ {{ total_comprado|floatformat:2|intcomma }}
+          · Saldo por cobrar: <strong>RD$ {{ saldo_por_cobrar|floatformat:2|intcomma }}</strong>
+          {% if cliente.ultima_compra %}· Última compra: {{ cliente.ultima_compra|date:"d/m/Y" }}{% endif %}
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Historial de compras</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Factura</th>
+              <th>Fecha</th>
+              <th>Productos</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in ventas %}
+            <tr>
+              <td><a href="{% url 'venta_factura' v.id %}">{{ v.numero_factura|default:v.id }}</a></td>
+              <td>{{ v.fecha|date:"d/m/Y" }}</td>
+              <td>{% for d in v.detalles.all %}{{ d.producto.nombre }} x{{ d.cantidad }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+              <td>RD$ {{ v.total|floatformat:2|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="color:#6B7280; font-size:13px;">Este cliente todavía no tiene compras registradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="settings-side">
+      <div class="card">
+        <div class="card-header">
+          <h3>Cuentas por cobrar</h3>
+        </div>
+        {% if ventas_credito_pendientes %}
+          <table>
+            <thead><tr><th>Venta</th><th>Pendiente</th></tr></thead>
+            <tbody>
+              {% for v in ventas_credito_pendientes %}
+              <tr>
+                <td>{% if v.cuenta_por_cobrar %}<a href="{% url 'cuenta_por_cobrar_detalle' v.cuenta_por_cobrar.id %}">{{ v.numero_factura }}</a>{% else %}{{ v.numero_factura|default:v.id }}{% endif %} · {{ v.fecha|date:"d/m/Y" }}</td>
+                <td><strong>RD$ {{ v.saldo_pendiente_calc|floatformat:2|intcomma }}</strong></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p style="font-size:12px; color:#6B7280; margin-top:10px;">Los cobros y abonos se registran desde Finanzas → Cuentas por Cobrar.</p>
+        {% else %}
+          <p style="font-size:13px; color:#6B7280;">Este cliente no tiene ventas a crédito pendientes.</p>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Pedidos pendientes</h3>
+        </div>
+        {% if pedidos_pendientes %}
+          <table>
+            <thead>
+              <tr><th>Pedido</th><th>Estado</th><th>Pendiente</th></tr>
+            </thead>
+            <tbody>
+              {% for p in pedidos_pendientes %}
+              <tr>
+                <td><a href="{% url 'pedidos_clientes_detalle' p.pk %}">#{{ p.pk }}</a></td>
+                <td><span class="estado {% if p.estado == 'Confirmado' %}ok{% else %}medio{% endif %}">{{ p.estado }}</span></td>
+                <td>{% for d in p.detalles.all %}{{ d.producto.nombre }}: {{ d.cantidad_pendiente }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p style="font-size:13px; color:#6B7280;">Este cliente no tiene pedidos pendientes.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

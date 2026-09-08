@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Nuevo pedido de cliente{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Nuevo pedido de cliente</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'ventas' %}">Ventas</a>
+    <a href="{% url 'pedidos_clientes_lista' %}" class="active">Pedidos de Clientes</a>
+  </div>
+
+  {{ catalogo_precios_json|json_script:"catalogo-precios" }}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors or formset.non_form_errors %}
+      <div class="card">
+        <p class="form-error" style="font-size:13px;">Revisa los datos del formulario: hay campos con errores.</p>
+      </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Información general</h3>
+      </div>
+      <p style="font-size:12px; color:#6B7280; margin-bottom: 12px;">
+        Este pedido registra lo que el cliente solicita. Todavía no es una venta: no descuenta inventario ni
+        genera un ingreso en Finanzas. Eso ocurre cuando se despache/facture, en un paso posterior.
+      </p>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.cliente.id_for_label }}">Cliente</label>
+          {{ form.cliente }}
+          {% if form.cliente.errors %}<span class="form-error">{{ form.cliente.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="field-group">
+          <label for="{{ form.fecha_entrega.id_for_label }}">Fecha de entrega solicitada</label>
+          {{ form.fecha_entrega }}
+          {% if form.fecha_entrega.errors %}<span class="form-error">{{ form.fecha_entrega.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="field-group">
+          <label for="{{ form.fecha_vigencia.id_for_label }}">Vigencia hasta</label>
+          {{ form.fecha_vigencia }}
+          {% if form.fecha_vigencia.errors %}<span class="form-error">{{ form.fecha_vigencia.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+          {{ form.observaciones }}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Productos del pedido</h3>
+      </div>
+
+      {{ formset.management_form }}
+      <table data-lineas-formset data-catalogo="catalogo-precios" data-campo-precio="precio_unitario" data-total-target="#totalPedidoEstimado">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 140px;">Cantidad</th>
+            <th style="width: 160px;">Precio de venta</th>
+            {% if formset.can_delete %}<th style="width: 60px;">Quitar</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in formset %}
+          <tr>
+            <td>{{ f.producto }}{{ f.id }}</td>
+            <td>{{ f.cantidad }}</td>
+            <td>{{ f.precio_unitario }}</td>
+            {% if formset.can_delete %}<td>{{ f.DELETE }}</td>{% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if formset.non_form_errors %}
+        <span class="form-error">{{ formset.non_form_errors.0 }}</span>
+      {% endif %}
+
+      <div class="table-total">
+        <span>Total estimado</span>
+        <strong id="totalPedidoEstimado">RD$ 0.00</strong>
+      </div>
+
+      <p style="font-size:12px; color:#6B7280; margin-top: 4px;">
+        Deja la fila vacía si no la vas a usar. El precio se sugiere desde el precio de venta vigente del producto
+        y queda fijo para este pedido, aunque el precio del producto cambie después.
+      </p>
+    </div>
+
+    <button type="submit" class="btn-add">Crear pedido</button>
+  </form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/formulario_lineas_documento.js' %}"></script>
+{% endblock %}

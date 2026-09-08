@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Usuarios{% endblock %}
+
+{% block content %}
+
+    <header class="topbar">
+    <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Usuarios</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if puede_gestionar_roles or puede_gestionar_recuperaciones %}
+  <div class="tabs">
+    <a href="{% url 'usuarios_lista' %}" class="active">Usuarios</a>
+    {% if puede_gestionar_roles %}<a href="{% url 'roles_lista' %}">Roles y Permisos</a>{% endif %}
+    {% if puede_gestionar_recuperaciones %}<a href="{% url 'recuperacion_lista' %}">Recuperación de contraseñas</a>{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="section-label">Usuarios del sistema</span>
+      </div>
+      <a href="{% url 'usuarios_crear' %}" class="btn-add">
+        Crear Usuario <span class="icon-circle"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+      </a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in usuarios %}
+        <tr>
+          <td>{{ item.objeto.username }}</td>
+          <td>{{ item.rol|default:"Sin rol asignado" }}</td>
+          <td>
+            {% if item.objeto.is_active %}Activo{% else %}Inactivo{% endif %}
+          </td>
+          <td>
+            <a href="{% url 'usuarios_editar' item.objeto.pk %}" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Editar</a>
+            <a href="{% url 'usuarios_cambiar_password' item.objeto.pk %}" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Cambiar contraseña</a>
+            {% if item.objeto.is_active %}
+              <form method="post" action="{% url 'usuarios_desactivar' item.objeto.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger" style="padding: 4px 10px; font-size: 12px;">Desactivar usuario</button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'usuarios_activar' item.objeto.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-add green" style="padding: 4px 10px; font-size: 12px;">Activar usuario</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

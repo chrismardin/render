@@ -1,0 +1,104 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Nueva orden de compra{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Nueva orden de compra</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}" class="active">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  {{ catalogo_costos_json|json_script:"catalogo-costos" }}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors or formset.non_form_errors %}
+      <div class="card">
+        <p class="form-error" style="font-size:13px;">Revisa los datos del formulario: hay campos con errores.</p>
+      </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Información general</h3>
+      </div>
+      <p style="font-size:12px; color:#6B7280; margin-bottom: 12px;">
+        Esta orden es una solicitud al proveedor: se crea en estado "Borrador" y todavía no afecta el inventario
+        ni el costo del producto. Eso ocurre cuando se registre la recepción de la mercancía.
+      </p>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.proveedor.id_for_label }}">Proveedor</label>
+          {{ form.proveedor }}
+          {% if form.proveedor.errors %}<span class="form-error">{{ form.proveedor.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.notas.id_for_label }}">Notas</label>
+          {{ form.notas }}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Productos solicitados</h3>
+      </div>
+
+      {{ formset.management_form }}
+      <table data-lineas-formset data-catalogo="catalogo-costos" data-campo-precio="costo_unitario" data-total-target="#totalOrdenEstimado">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 140px;">Cantidad</th>
+            <th style="width: 160px;">Costo unitario (estimado)</th>
+            {% if formset.can_delete %}<th style="width: 60px;">Quitar</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in formset %}
+          <tr>
+            <td>{{ f.producto }}{{ f.id }}</td>
+            <td>{{ f.cantidad_solicitada }}</td>
+            <td>{{ f.costo_unitario }}</td>
+            {% if formset.can_delete %}<td>{{ f.DELETE }}</td>{% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if formset.non_form_errors %}
+        <span class="form-error">{{ formset.non_form_errors.0 }}</span>
+      {% endif %}
+
+      <div class="table-total">
+        <span>Total estimado</span>
+        <strong id="totalOrdenEstimado">RD$ 0.00</strong>
+      </div>
+
+      <p style="font-size:12px; color:#6B7280; margin-top: 4px;">
+        Deja la fila vacía si no la vas a usar. El costo unitario es una estimación de partida (tomada del último
+        costo conocido del producto) y puede ajustarse; el costo real se confirma al recibir la mercancía.
+      </p>
+    </div>
+
+    <button type="submit" class="btn-add">Crear orden de compra</button>
+  </form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/formulario_lineas_documento.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Despachar pedido{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Despachar / Facturar — Pedido #{{ pedido.pk }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'ventas' %}">Ventas</a>
+    <a href="{% url 'pedidos_clientes_lista' %}">Pedidos de Clientes</a>
+    <a href="{% url 'pedidos_clientes_detalle' pedido.pk %}" class="active">Pedido #{{ pedido.pk }}</a>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Información general</h3>
+    </div>
+    <p style="font-size:13px; color:#6B7280;">
+      Cliente: <strong>{{ pedido.cliente.nombre }}</strong>. Indica cuánto vas a despachar/facturar ahora de
+      cada línea; puede ser menos que lo pendiente si se trata de una entrega parcial. Esto generará una Venta
+      real y descontará inventario. Si el pago es al contado, el ingreso se registrará en Finanzas; si es a crédito,
+      el saldo quedará automáticamente en Cuentas por Cobrar hasta que el cliente pague. El precio usado es el ya acordado en el pedido.
+    </p>
+  </div>
+
+  <form method="post" id="form-despacho">
+    {% csrf_token %}
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Productos pendientes</h3>
+      </div>
+
+      <table id="tabla-despacho">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 140px;">Precio unitario</th>
+            <th style="width: 100px;">Pendiente</th>
+            <th style="width: 160px;">Cantidad a despachar ahora</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detalles_pendientes %}
+          <tr data-precio="{{ d.precio_unitario }}">
+            <td>{{ d.producto.nombre }}</td>
+            <td class="amount">RD$ {{ d.precio_unitario }}</td>
+            <td class="amount">{{ d.cantidad_pendiente }}</td>
+            <td><input type="number" min="0" max="{{ d.cantidad_pendiente }}" name="cantidad_{{ d.pk }}" placeholder="0"></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="color:#6B7280; font-size:13px;">Este pedido no tiene líneas pendientes.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="table-total">
+        <span>Total estimado a facturar ahora</span>
+        <strong id="totalDespachoEstimado">RD$ 0.00</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="field-group">
+          <label for="id_condicion_pago">Condición de pago</label>
+          <select id="id_condicion_pago" name="condicion_pago">
+            <option value="Contado">Contado</option>
+            <option value="Credito">Crédito</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="id_metodo_pago">Método de pago</label>
+          <select id="id_metodo_pago" name="metodo_pago">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="id_tipo_comprobante">Comprobante</label>
+          <select id="id_tipo_comprobante" name="tipo_comprobante">
+            <option value="">Automático</option>
+            <option value="E32">E32</option>
+            <option value="E31">E31</option>
+            <option value="E44">E44</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row"><div class="field-group"><label for="id_observaciones">Observaciones</label><input id="id_observaciones" type="text" name="observaciones" maxlength="250"></div></div>
+      <button type="submit" class="btn-add">Confirmar despacho / facturación</button>
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var tabla = document.getElementById('tabla-despacho');
+  var totalEl = document.getElementById('totalDespachoEstimado');
+  if (!tabla || !totalEl) return;
+  function recalcular() {
+    var total = 0;
+    tabla.querySelectorAll('tbody tr').forEach(function (fila) {
+      var precio = parseFloat(fila.dataset.precio) || 0;
+      var input = fila.querySelector('input[type="number"]');
+      var cantidad = parseFloat(input && input.value) || 0;
+      total += precio * cantidad;
+    });
+    totalEl.textContent = 'RD$ ' + total.toFixed(2);
+  }
+  tabla.addEventListener('input', recalcular);
+});
+</script>
+{% endblock %}

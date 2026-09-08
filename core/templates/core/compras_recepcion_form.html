@@ -1,0 +1,97 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Nueva recepción{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Nueva recepción — Orden #{{ orden.pk }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}" class="active">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Información general</h3>
+    </div>
+    <p style="font-size:13px; color:#6B7280;">
+      Proveedor: <strong>{{ orden.proveedor.nombre }}</strong>. Indica solo lo que físicamente llegó; el
+      inventario se actualiza automáticamente al confirmar. Puedes dejar en blanco lo que no llegó todavía
+      (recepción parcial).
+    </p>
+  </div>
+
+  <form method="post" id="form-recepcion">
+    {% csrf_token %}
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Productos pendientes</h3>
+      </div>
+
+      <table id="tabla-recepcion">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 100px;">Pendiente</th>
+            <th style="width: 160px;">Cantidad recibida ahora</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detalles_pendientes %}
+          <tr>
+            <td>{{ d.producto.nombre }}</td>
+            <td class="amount">{{ d.cantidad_pendiente }}</td>
+            <td><input type="number" min="0" max="{{ d.cantidad_pendiente }}" name="cantidad_{{ d.pk }}" placeholder="0"></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="color:#6B7280; font-size:13px;">Esta orden no tiene líneas pendientes.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="table-total">
+        <span>Unidades a recibir ahora</span>
+        <strong id="totalUnidadesRecepcion">0</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="field-group">
+          <label for="id_notas">Notas</label>
+          <textarea id="id_notas" name="notas" rows="2" placeholder="Notas (opcional)"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-add">Confirmar recepción</button>
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var tabla = document.getElementById('tabla-recepcion');
+  var totalEl = document.getElementById('totalUnidadesRecepcion');
+  if (!tabla || !totalEl) return;
+  function recalcular() {
+    var total = 0;
+    tabla.querySelectorAll('input[type="number"]').forEach(function (input) {
+      total += parseFloat(input.value) || 0;
+    });
+    totalEl.textContent = total;
+  }
+  tabla.addEventListener('input', recalcular);
+});
+</script>
+{% endblock %}

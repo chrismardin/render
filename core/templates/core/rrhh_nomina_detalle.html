@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+
+{% block title %}Cromf Finanzas - Detalle de Nómina{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Nómina — {{ nomina.fecha_inicio|date:"F Y" }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+{% include 'core/_rrhh_tabs.html' %}
+
+
+  <div class="tabs">
+    <a href="{% url 'rrhh_nomina' %}">&larr; Volver a Nómina</a>
+    <a href="{% url 'rrhh_nomina_pdf' nomina.pk %}">Descargar PDF</a>
+  </div>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">
+      <h3>
+        Período {{ nomina.fecha_inicio|date:"d/m/Y" }} — {{ nomina.fecha_fin|date:"d/m/Y" }}
+        <span class="estado {% if nomina.estado == 'Pagada' %}ok{% else %}bajo{% endif %}">{{ nomina.estado }}</span>
+      </h3>
+      {% if nomina.estado == 'Pagada' %}
+        <p style="font-size:13px; color:#6B7280; margin:6px 0 0;">
+          Pagada el {{ nomina.fecha_pago|date:"d/m/Y" }}
+          {% if nomina.movimiento_financiero %}· Movimiento financiero #{{ nomina.movimiento_financiero.pk }}{% endif %}
+        </p>
+      {% elif puede_pagar %}
+        <form method="post" action="{% url 'rrhh_nomina_pagar' nomina.pk %}"
+              style="margin-top:10px;"
+              onsubmit="return confirm('¿Registrar el pago completo de la nómina de {{ nomina.fecha_inicio|date:"F Y" }} por RD$ {{ nomina.total_neto|floatformat:2|intcomma }}? Esta operación generará un egreso financiero y no se puede deshacer.');">
+          {% csrf_token %}
+          <button type="submit" class="btn-add green">Registrar pago (RD$ {{ nomina.total_neto|floatformat:2|intcomma }})</button>
+        </form>
+      {% endif %}
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Tipo nómina</th>
+          <th>1ra quincena</th>
+          <th>2da quincena</th>
+          <th>Salario base</th>
+          <th>Horas extra</th>
+          <th>Pago horas extra</th>
+          <th>Ausencias</th>
+          <th>Descuento ausencias</th>
+          <th>AFP</th>
+          <th>SFS</th>
+          <th>ISR</th>
+          <th>Total deducciones</th>
+          <th>Salario neto</th>
+          <th>Recibo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in detalles %}
+        <tr>
+          <td>{{ d.empleado_nombre }}</td>
+          <td>{{ d.tipo_nomina }}</td>
+          <td>{% if d.tipo_nomina == 'Quincenal' %}RD$ {{ d.primera_quincena|floatformat:2|intcomma }}{% else %}--{% endif %}</td>
+          <td>{% if d.tipo_nomina == 'Quincenal' %}RD$ {{ d.segunda_quincena|floatformat:2|intcomma }}{% else %}--{% endif %}</td>
+          <td>RD$ {{ d.salario_base|floatformat:2|intcomma }}</td>
+          <td>{{ d.horas_extra }}</td>
+          <td>RD$ {{ d.pago_horas_extra|floatformat:2|intcomma }}</td>
+          <td>{{ d.dias_ausencia }}</td>
+          <td>RD$ {{ d.descuento_ausencias|floatformat:2|intcomma }}</td>
+          <td>RD$ {{ d.afp|floatformat:2|intcomma }}</td>
+          <td>RD$ {{ d.sfs|floatformat:2|intcomma }}</td>
+          <td>RD$ {{ d.isr|floatformat:2|intcomma }}</td>
+          <td>RD$ {{ d.total_deducciones|floatformat:2|intcomma }}</td>
+          <td><strong>RD$ {{ d.salario_neto|floatformat:2|intcomma }}</strong></td>
+          <td><a href="{% url 'rrhh_nomina_recibo' d.pk %}">Ver recibo</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="15" style="color:#6B7280; font-size:13px;">Esta nómina no tiene empleados (no había empleados activos en ese momento).</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="14" style="text-align:right;"><strong>Total bruto / deducciones / neto</strong></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td colspan="13"></td>
+          <td colspan="2">
+            RD$ {{ nomina.total_bruto|floatformat:2|intcomma }} /
+            RD$ {{ nomina.total_deducciones|floatformat:2|intcomma }} /
+            <strong>RD$ {{ nomina.total_neto|floatformat:2|intcomma }}</strong>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+{% endblock %}

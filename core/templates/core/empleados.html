@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Cromf Finanzas - Empleados{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg> RRHH</h1>
+  <div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div>
+</header>
+
+{% include 'core/_rrhh_tabs.html' %}
+
+<section class="kpi-row">
+  <div class="kpi-card blue">
+    <div class="kpi-top"><span class="kpi-icon blue"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></span><span class="label">Total Empleados</span></div>
+    <div class="value">{{ total_empleados }}</div>
+    <div class="sub">En {{ total_departamentos }} departamentos</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-top"><span class="kpi-icon green"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span><span class="label">Activos</span></div>
+    <div class="value">{{ activos }}</div>
+    <div class="sub">{{ porcentaje_activos }}% del total</div>
+  </div>
+  <div class="kpi-card orange">
+    <div class="kpi-top"><span class="kpi-icon orange"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v22M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H7"/></svg></span><span class="label">Nómina Mensual</span></div>
+    <div class="value">RD$ {{ nomina_mensual|floatformat:2 }}</div>
+    <div class="sub">Gasto mensual de empleados activos</div>
+  </div>
+  <div class="kpi-card purple">
+    <div class="kpi-top"><span class="kpi-icon purple"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span class="label">Departamentos</span></div>
+    <div class="value">{{ total_departamentos }}</div>
+    <div class="sub">{{ departamentos|join:", " }}</div>
+  </div>
+</section>
+
+<section id="empleados-directorio" class="employee-tab-content">
+  {% if puede_crear %}
+  <div id="empleado-form-panel" class="panel employee-form-panel" {% if not editando %}style="display:none;"{% endif %}>
+    <div class="card-header">
+      <h3>{% if editando %}Editar empleado{% else %}Nuevo empleado{% endif %}</h3>
+      {% if editando %}<a class="btn-secundario" href="{% url 'empleados' %}">Cancelar</a>{% endif %}
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="{% if editando %}editar{% else %}crear{% endif %}">
+      {% if editando %}<input type="hidden" name="empleado_id" value="{{ form.instance.pk }}">{% endif %}
+      <div class="employee-form-grid">
+        {% for field in form %}
+          <div class="field-group">
+            {{ field.label_tag }}{{ field }}
+            {% for e in field.errors %}<small class="form-error">{{ e }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <button class="btn-add" type="submit">{% if editando %}Guardar cambios{% else %}Guardar empleado{% endif %}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <div class="panel-toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="buscar-empleado" type="text" placeholder="Buscar empleado...">
+      </div>
+      {% if puede_crear and not editando %}
+        <button type="button" class="btn-add" id="btn-nuevo-empleado">+ Nuevo empleado</button>
+      {% endif %}
+    </div>
+    <table id="tabla-empleados">
+      <thead><tr><th>ID</th><th>Nombre</th><th>Puesto</th><th>Departamento</th><th>Área</th><th>Tipo</th><th>Nómina</th><th>Nivel académico</th><th>Teléfono</th><th>Fecha Ingreso</th><th>Salario (RD$)</th><th>Estado</th>{% if puede_crear %}<th>Acciones</th>{% endif %}</tr></thead>
+      <tbody>
+      {% for empleado in empleados %}
+        <tr>
+          <td>E{{ empleado.id|stringformat:"03d" }}</td>
+          <td><strong>{{ empleado.nombre }}</strong></td>
+          <td>{{ empleado.puesto }}</td>
+          <td>{{ empleado.departamento }}</td>
+          <td>{{ empleado.area|default:"--" }}</td>
+          <td>{{ empleado.tipo_empleado }}</td>
+          <td>{{ empleado.tipo_nomina }}</td>
+          <td>{{ empleado.nivel_academico|default:"--" }}</td>
+          <td>{{ empleado.telefono|default:"--" }}</td>
+          <td>{{ empleado.fecha_ingreso|date:"d-m-Y" }}</td>
+          <td>RD$ {{ empleado.salario|floatformat:2 }}</td>
+          <td><span class="estado {% if empleado.estado == 'Activo' %}activo{% else %}inactivo{% endif %}">{{ empleado.estado }}</span></td>
+          {% if puede_crear %}
+          <td>
+            <a href="?editar={{ empleado.id }}" class="btn-secundario">Editar</a>
+            {% if empleado.estado == 'Activo' %}
+            <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="accion" value="desactivar"><input type="hidden" name="empleado_id" value="{{ empleado.id }}"><button type="submit" class="btn-secundario" onclick="return confirm('¿Desactivar este empleado? Podrás seguir consultando su historial, pero dejará de contar como activo.')">Desactivar</button></form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="13">Todavía no hay empleados registrados.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const search = document.getElementById('buscar-empleado');
+  if (search) search.addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#tabla-empleados tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  const newBtn = document.getElementById('btn-nuevo-empleado');
+  const formPanel = document.getElementById('empleado-form-panel');
+  if (newBtn && formPanel) newBtn.addEventListener('click', () => {
+    formPanel.style.display = formPanel.style.display === 'none' ? '' : 'none';
+    if (formPanel.style.display !== 'none') formPanel.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+</script>
+{% endblock %}

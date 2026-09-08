@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Cromf Finanzas - Acceso denegado</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+
+  <div class="panel" style="width: 380px; text-align: center;">
+    <div class="logo" style="justify-content: center; margin-bottom: 20px;">Cromf Finanzas</div>
+    <h2 style="color: #1c2438; margin-bottom: 10px;">Acceso denegado</h2>
+    <p style="color: #555; font-size: 13px; margin-bottom: 20px;">
+      Tu usuario no tiene permiso para acceder a este módulo.
+    </p>
+    <a href="{% url 'dashboard' %}" class="btn-guardar" style="display: inline-block; text-decoration: none;">Volver al Dashboard</a>
+  </div>
+
+</body>
+
+</html>

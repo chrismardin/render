@@ -1,0 +1,243 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Dashboard{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+    <!-- =========================
+         BARRA SUPERIOR
+    ========================== -->
+    <header class="topbar">
+        <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Dashboard</h1>
+        <div class="admin-area">
+          {% include 'core/_perfil_dropdown.html' %}
+        </div>
+    </header>
+
+    <h2 class="section-title">KPI</h2>
+
+    <!-- =========================
+         TARJETAS KPI
+    ========================== -->
+    <section class="kpi-row">
+
+        <!-- Ventas del mes -->
+        <div class="kpi-card">
+            <div class="label">Ventas del Mes (RD$)</div>
+
+            <div class="value">
+                RD$ {{ total_ventas_mes|floatformat:2 }}
+            </div>
+
+            <div class="sub {% if tendencia_ventas_mes == None %}neutral{% elif ventas_mes_positiva %}up{% else %}down{% endif %}">
+                {% if tendencia_ventas_mes == None %}
+                    Sin datos suficientes del mes anterior
+                {% elif tendencia_ventas_mes == 0 %}
+                    Sin variación Vs Mes Anterior
+                {% else %}
+                    {% if ventas_mes_positiva %}▲{% else %}▼{% endif %} {{ tendencia_ventas_mes }}% Vs Mes Anterior
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Ingresos -->
+        <div class="kpi-card">
+            <div class="label">Ingresos (RD$)</div>
+
+            <div class="value">
+                RD$ {{ total_ingresos|floatformat:2 }}
+            </div>
+
+            <div class="sub up">
+                ▲ Total de ingresos registrados
+            </div>
+        </div>
+
+        <!-- Gastos -->
+        <div class="kpi-card">
+            <div class="label">Gastos (RD$)</div>
+
+            <div class="value">
+                RD$ {{ total_gastos|floatformat:2 }}
+            </div>
+
+            <div class="sub down">
+                ▼ Total de gastos registrados
+            </div>
+        </div>
+
+        <!-- Ganancias -->
+        <div class="kpi-card">
+            <div class="label">Ganancias Netas (RD$)</div>
+
+            <div class="value">
+                RD$ {{ ganancia_neta|floatformat:2 }}
+            </div>
+
+            <div class="sub neutral">
+                Ingresos menos gastos
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =========================
+         VENTAS POR CATEGORIA
+    ========================== -->
+    <section class="card">
+
+        <h3>Ventas Mensuales Por Categoria</h3>
+
+        {% if grafica_categorias.hay_datos %}
+
+        <div class="legend">
+            {% for item in grafica_categorias.leyenda %}
+            <span>
+                <i class="dot" style="background:{{ item.color }};"></i>
+                {{ item.categoria }}
+            </span>
+            {% endfor %}
+        </div>
+
+        <div class="dash-chart-wrap">
+
+            <div class="dash-chart-yaxis">
+                {% for valor in grafica_categorias.eje_y %}
+                <span>RD$ {{ valor|floatformat:2 }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="dash-chart-bars">
+                {% for d in grafica_categorias.datos %}
+                <div class="dash-bar-stack" style="height:{{ d.altura_pct }}%;" title="{{ d.mes }}: RD$ {{ d.total|floatformat:2 }}">
+                    {% for seg in d.segmentos %}
+                    <div style="height:{{ seg.pct_del_total }}%; background:{{ seg.color }};" title="{{ seg.categoria }}: RD$ {{ seg.monto|floatformat:2 }}"></div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% elif grafica_categorias.hay_categorias %}
+            <p class="proy-empty">Todavía no hay ventas registradas para calcular este gráfico.</p>
+        {% else %}
+            <p class="proy-empty">Todavía no hay productos con categoría registrados en el catálogo.</p>
+        {% endif %}
+    </section>
+
+    <!-- =========================
+         ULTIMOS MOVIMIENTOS
+    ========================== -->
+    <section class="card">
+
+        <h3><u>Últimos Movimientos Financieros</u></h3>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Categoría</th>
+                    <th>Cliente / Proveedor</th>
+                    <th class="amount">Monto</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for mov in movimientos %}
+
+                <tr>
+
+                    <td>
+                        {{ mov.fecha|date:"d-m-Y" }}
+                    </td>
+
+                    <td>
+
+                        {% if mov.tipo == "Ingreso" %}
+
+                            <span class="estado ok">
+                                Ingreso
+                            </span>
+
+                        {% else %}
+
+                            <span class="estado bajo">
+                                Gasto
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ mov.categoria }}
+                    </td>
+
+                    <td>
+                        {{ mov.cliente_proveedor }}
+                    </td>
+
+                    <td class="amount">
+                        RD$ {{ mov.monto }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5">
+                        Todavía no hay movimientos registrados.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+    <!-- =========================
+         ALERTAS IA
+    ========================== -->
+    <section class="alerts">
+
+        <h3>Alertas y Recomendaciones</h3>
+
+        {% for alerta in alertas_stock %}
+        <p class="alert-danger">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            {{ alerta.mensaje }}
+        </p>
+        {% empty %}
+        <p>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+            No hay productos con stock bajo actualmente.
+        </p>
+        {% endfor %}
+
+        {% for recomendacion in recomendaciones %}
+        <p>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+            {{ recomendacion }}
+        </p>
+        {% empty %}
+        <p>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+            No hay datos suficientes para generar recomendaciones.
+        </p>
+        {% endfor %}
+
+    </section>
+
+{% endblock %}

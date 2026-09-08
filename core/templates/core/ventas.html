@@ -1,0 +1,164 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Ventas{% endblock %}
+
+{% block content %}
+
+    <header class="topbar">
+      <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="20" cy="20" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Ventas</h1>
+      <div class="admin-area">
+        {% include 'core/_perfil_dropdown.html' %}
+      </div>
+    </header>
+
+    <!-- ====================================== -->
+    <!-- NAVEGACIÓN SUPERIOR: Ventas / Pedidos / Historial -->
+    <!-- ====================================== -->
+    <div class="tabs ventas-top-tabs">
+      <button id="tabNuevaVenta" class="active" type="button">Ventas</button>
+      {% if puede_ver_pedidos_clientes %}<a href="{% url 'pedidos_clientes_lista' %}">Pedidos de Venta</a>{% endif %}
+      <button id="tabHistorial" type="button">Historial</button>
+    </div>
+
+    <div class="panel ventas-panel">
+
+      <!-- Panel izquierdo -->
+      <div class="panel-left">
+
+        <!-- ====================================== -->
+        <!-- HISTORIAL DE PRODUCTOS (se muestra con la pestaña "Historial") -->
+        <!-- ====================================== -->
+        <div id="historialPanel">
+          <h3>Historial de productos</h3>
+          <table id="tablaHistorialMini">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- ====================================== -->
+        <!-- FORMULARIO: AGREGAR PRODUCTO MANUALMENTE -->
+        <!-- ====================================== -->
+        <div id="formularioVenta" class="ventas-form-block">
+          <div class="filters-row ventas-fields-row">
+            <div class="field-group sku">
+              <label>SKU/Cod</label>
+              <div class="sku-autocomplete">
+              <input type="text" id="sku" autocomplete="off" placeholder="Ej: P001" aria-autocomplete="list" aria-controls="productos-sugerencias">
+              <div id="productos-sugerencias" class="productos-sugerencias" role="listbox" aria-label="Productos disponibles en inventario">
+                {% for p in productos_lista %}
+                <button type="button" class="producto-sugerencia" data-sku="{{ p.sku }}" data-nombre="{{ p.nombre }}" data-precio="{{ p.precio_venta }}" data-stock="{{ p.stock }}" role="option">
+                  <span class="sugerencia-sku">{{ p.sku }}</span>
+                  <span class="sugerencia-nombre">{{ p.nombre }}</span>
+                  <span class="sugerencia-precio">RD$ {{ p.precio_venta }}</span>
+                  <span class="sugerencia-stock{% if p.stock == 0 %} sin-stock{% elif p.stock <= p.stock_minimo %} stock-bajo{% endif %}">Stock: {{ p.stock }}</span>
+                </button>
+                {% empty %}
+                <div class="sugerencias-vacio">No hay productos registrados en inventario.</div>
+                {% endfor %}
+              </div>
+            </div>
+            </div>
+            <div class="field-group producto">
+              <label>Nombre</label>
+              <input type="text" id="producto" placeholder="Nombre del producto">
+            </div>
+            <div class="field-group cantidad">
+              <label>Cantidad</label>
+              <input type="number" id="cantidad" min="1" value="1">
+            </div>
+            <div class="field-group precio">
+              <label>Precio (RD$)</label>
+              <input type="number" id="precio" min="0" step="0.01">
+            </div>
+            <div class="field-group cantidad">
+              <label>Descuento %</label>
+              <input type="number" id="descuento" min="0" max="100" step="0.01" value="0">
+            </div>
+            <button class="btn-add" id="botonAgregarProducto">Agregar Producto</button>
+          </div>
+
+          <!-- ====================================== -->
+          <!-- TABLA: VENTA ACTUAL -->
+          <!-- ====================================== -->
+          <div class="ventas-actual-header">
+            <h3>Venta actual</h3>
+          </div>
+          <table id="tablaVenta">
+            <thead>
+              <tr>
+                <th>SKU/Cod</th>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Desc. %</th>
+                <th>Total</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====================================== -->
+      <!-- RESUMEN DE LA VENTA -->
+      <!-- ====================================== -->
+      <div class="panel-right">
+        <div class="summary-row"><span>Subtotal</span><span class="subtotal">RD$ 0.00</span></div>
+        <div class="summary-row"><span>ITBIS</span><span class="itbis">RD$ 0.00</span></div>
+        <div class="summary-row total"><span>Total</span><span class="total">RD$ 0.00</span></div>
+        <div class="pago-section">
+          <span class="label">Cliente</span>
+          <select id="clienteVenta" name="cliente_id">
+            <option value="">Cliente genérico</option>
+            {% for cliente in clientes_lista %}
+              <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="pago-section">
+          <span class="label">Condición de pago</span>
+          <div class="pago-options">
+            <label><input type="radio" name="condicion_pago" value="contado" checked> Contado</label>
+            <label><input type="radio" name="condicion_pago" value="credito"> Crédito</label>
+          </div>
+          <p class="venta-credito-ayuda">En ventas a crédito debe seleccionarse un cliente registrado. El saldo pasará automáticamente a Cuentas por Cobrar.</p>
+        </div>
+        <div class="pago-section">
+          <span class="label">Método de pago</span>
+          <div class="pago-options">
+            <label><input type="radio" name="pago" value="efectivo" checked> Efectivo</label>
+            <label><input type="radio" name="pago" value="tarjeta"> Tarjeta</label>
+          </div>
+        </div>
+        <div class="pago-section">
+          <span class="label">Comprobante</span>
+          <select id="tipoComprobante"><option value="">Automático</option><option value="E32">E32</option><option value="E31">E31</option><option value="E44">E44</option></select>
+        </div>
+        <div class="pago-section">
+          <span class="label">Observaciones</span>
+          <input id="observacionesVenta" type="text" maxlength="250" placeholder="Opcional">
+        </div>
+        <button class="btn-procesar" id="botonProcesarVenta">Procesar Venta</button>
+      </div>
+
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+  {{ historial_json|json_script:"historial-data" }}
+  {{ catalogo_json|json_script:"catalogo-productos" }}
+  {{ clientes_json|json_script:"clientes-data" }}
+  {{ itbs_porcentaje_json|json_script:"itbs-porcentaje" }}
+  <script src="{% static 'js/ventas.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+
+{% block title %}Cromf Finanzas - Nómina{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>RRHH</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% include 'core/_rrhh_tabs.html' %}
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Nóminas generadas</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Período</th>
+              <th>Estado</th>
+              <th>Total bruto</th>
+              <th>Deducciones</th>
+              <th>Total neto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in nominas %}
+            <tr>
+              <td>{{ n.fecha_inicio|date:"M Y" }}</td>
+              <td><span class="estado {% if n.estado == 'Pagada' %}ok{% else %}bajo{% endif %}">{{ n.estado }}</span></td>
+              <td>RD$ {{ n.total_bruto|floatformat:2|intcomma }}</td>
+              <td>RD$ {{ n.total_deducciones|floatformat:2|intcomma }}</td>
+              <td>RD$ {{ n.total_neto|floatformat:2|intcomma }}</td>
+              <td><a href="{% url 'rrhh_nomina_detalle' n.pk %}" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Ver detalle</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="color:#6B7280; font-size:13px;">Todavía no se ha generado ninguna nómina.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="settings-side">
+      {% if puede_gestionar %}
+      <div class="card">
+        <div class="card-header">
+          <h3>Generar nómina mensual</h3>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="field-group">
+              <label for="mes">Mes</label>
+              <select name="mes" id="mes">
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="anio">Año</label>
+              <input type="number" name="anio" id="anio" value="{{ anio_actual }}" min="2020" max="2100">
+            </div>
+          </div>
+          <button type="submit" class="btn-add" style="margin-top: 10px;" onclick="return confirm('¿Generar la nómina de este período? Se calculará para todos los empleados activos.');">Generar nómina</button>
+        </form>
+        <p style="padding: 0 16px 16px; color:#6B7280; font-size: 12px;">
+          Incluye a todos los empleados con estado Activo. No se puede generar dos veces la nómina del mismo mes. Generar la nómina no crea ningún movimiento financiero — eso ocurre únicamente al registrar el pago, desde el detalle de cada nómina.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

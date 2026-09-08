@@ -1,0 +1,240 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Productos{% endblock %}
+
+{% block content %}
+
+    <!-- ============================================================
+       BARRA SUPERIOR (TOPBAR)
+       Título de la página + zona de usuario/notificaciones.
+       Estilos en styles.css, SECCION 2.
+       ============================================================ -->
+    <header class="topbar">
+    <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/></svg> Productos</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+    <!-- ============================================================
+       PESTAÑAS (visual únicamente)
+       OJO: estos botones todavía NO tienen JavaScript conectado
+       en esta página (a diferencia de inventario.html, que sí
+       cambia de contenido al hacer clic). Por ahora solo se ve
+       cuál está "activa" con la clase .active.
+       Estilos en styles.css, SECCION 3.
+       ============================================================ -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="catalogo" onclick="mostrarTab('catalogo', this)">Catalogo General</button>
+    <button class="tab-btn" data-tab="movimiento" onclick="mostrarTab('movimiento', this)">Movimiento Stock</button>
+  </div>
+
+  <!-- ===== FORMULARIO AGREGAR PRODUCTO (oculto hasta que se pida) ===== -->
+  {% if puede_crear %}
+  <section id="form-registro" class="panel" style="{% if editando or form.errors %}display:block;{% else %}display:none;{% endif %}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+      <h3 style="margin:0;">{% if editando %}Editar Producto{% else %}Agregar Producto{% endif %}</h3>
+      {% if editando %}<a href="{% url 'productos' %}" class="btn-secundario" style="text-decoration:none;">Cancelar edición</a>{% endif %}
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="{% if editando %}editar{% else %}crear{% endif %}">
+      {% if editando %}<input type="hidden" name="producto_id" value="{{ form.instance.pk }}">{% endif %}
+      <div class="filters-row">
+        <div class="field-group">
+          <label>SKU</label>
+          {{ form.sku }}
+        </div>
+        <div class="field-group">
+          <label>Nombre</label>
+          {{ form.nombre }}
+        </div>
+        <div class="field-group">
+          <label>Categoria</label>
+          {{ form.categoria }}
+        </div>
+      </div>
+      <div class="filters-row">
+        <div class="field-group">
+          <label>Costo Compra</label>
+          {{ form.costo_compra }}
+        </div>
+        <div class="field-group">
+          <label>Precio Venta</label>
+          {{ form.precio_venta }}
+        </div>
+        <div class="field-group">
+          <label>ITBIS</label>
+          <label>{{ form.exento_itbis }} Exento</label>
+        </div>
+        <div class="field-group">
+          <label>Stock Inicial</label>
+          {{ form.stock }}
+        </div>
+        <div class="field-group">
+          <label>Stock Minimo</label>
+          {{ form.stock_minimo }}
+        </div>
+        <button type="submit" class="btn-add" style="align-self:flex-end;">{% if editando %}Guardar cambios{% else %}Guardar{% endif %}</button>
+      </div>
+
+      {% if form.errors %}
+      <div class="alerts" style="background:#fbe1e1; margin-top:10px;">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <p class="alert-danger"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {{ field.label }}: {{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </form>
+  </section>
+  {% endif %}
+
+  <!-- ===== TAB: CATALOGO GENERAL ===== -->
+  <section id="tab-catalogo" class="tab-content">
+    <div class="panel">
+      <div class="panel-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <input type="text" id="buscar-producto" placeholder="Buscar..." onkeyup="filtrarTabla()">
+        </div>
+        {% if puede_crear %}
+        <button class="btn-add" type="button" onclick="toggleFormulario()">
+          Agregar Productos <span class="icon-circle"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+        </button>
+        {% endif %}
+      </div>
+
+      <table id="tabla-catalogo">
+        <thead>
+          <tr>
+            <th>SKU/Cod</th>
+            <th>Nombre</th>
+            <th>Categoria</th>
+            <th>Costo Compra</th>
+            <th>Precio Venta</th>
+            <th>ITBIS</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for producto in productos %}
+          <tr>
+            <td>{{ producto.sku }}</td>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.categoria }}</td>
+            <td>RD$ {{ producto.costo_compra }}</td>
+            <td>RD$ {{ producto.precio_venta }}</td>
+            <td>{% if producto.exento_itbis %}<span class="estado ok">Exento</span>{% else %}<span class="estado medio">Gravado</span>{% endif %}</td>
+            <td>{{ producto.stock }}</td>
+            <td>
+              {% if puede_crear %}<a href="?editar={{ producto.id }}#form-registro" class="btn-secundario">Editar</a>
+              <form method="post" style="display:inline;">
+                {% csrf_token %}<input type="hidden" name="accion" value="eliminar"><input type="hidden" name="producto_id" value="{{ producto.id }}">
+                <button type="submit" class="btn-secundario" onclick="return confirm('¿Eliminar este producto?')">Eliminar</button>
+              </form>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8">Todavia no hay productos registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== TAB: MOVIMIENTO STOCK ===== -->
+  <section id="tab-movimiento" class="tab-content" style="display:none;">
+    <div class="panel">
+      <h3 style="margin-bottom:16px;">Ultimos Movimientos De Stock</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in movimientos %}
+          <tr>
+            <td>{{ mov.fecha|date:"d-m-Y H:i" }}</td>
+            <td>{{ mov.producto.nombre }}</td>
+            <td>
+              {% if mov.tipo == "Entrada" %}
+                <span class="estado ok">Entrada</span>
+              {% else %}
+                <span class="estado bajo">Salida</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.cantidad }}</td>
+            <td>{{ mov.motivo|default:"--" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5">Todavia no hay movimientos registrados. Registra uno desde Inventario.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function mostrarTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById('tab-' + tabId).style.display = 'block';
+
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function filtrarTabla() {
+    const texto = document.getElementById('buscar-producto').value.toLowerCase();
+    const filas = document.querySelectorAll('#tabla-catalogo tbody tr');
+    filas.forEach(fila => {
+      fila.style.display = fila.textContent.toLowerCase().includes(texto) ? '' : 'none';
+    });
+  }
+
+  function toggleFormulario() {
+    const form = document.getElementById('form-registro');
+    const params = new URLSearchParams(window.location.search);
+
+    // Si se estaba editando un producto, “Agregar Productos” debe abrir
+    // un formulario NUEVO y no reutilizar accidentalmente el objeto editado.
+    if (params.has('editar')) {
+      window.location.href = "{% url 'productos' %}#form-registro";
+      return;
+    }
+
+    const estaOculto = window.getComputedStyle(form).display === 'none';
+    form.style.display = estaOculto ? 'block' : 'none';
+    if (estaOculto) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('editar') || window.location.hash === '#form-registro') {
+      const form = document.getElementById('form-registro');
+      if (form) {
+        form.style.display = 'block';
+        // Con el hash del enlace el navegador ya posiciona la vista. Este
+        // fallback cubre accesos manuales a ?editar=<id>.
+        if (!window.location.hash) {
+          requestAnimationFrame(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

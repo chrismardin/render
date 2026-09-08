@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Recepciones{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Recepciones</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}" class="active">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  <div class="panel">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="section-label">Historial de recepciones</span>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Recepción</th>
+          <th>Orden</th>
+          <th>Proveedor</th>
+          <th>Fecha</th>
+          <th>Registrada por</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recepciones %}
+        <tr>
+          <td>#{{ r.pk }}</td>
+          <td><a href="{% url 'compras_orden_detalle' r.orden.pk %}">Orden #{{ r.orden.pk }}</a></td>
+          <td>{{ r.orden.proveedor.nombre }}</td>
+          <td>{{ r.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ r.recibido_por.username|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="color:#6B7280; font-size:13px;">Todavía no hay recepciones registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

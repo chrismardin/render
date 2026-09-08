@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Orden #{{ orden.pk }}{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Orden de compra #{{ orden.pk }}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}" class="active">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Proveedor: {{ orden.proveedor.nombre }}</h3>
+        </div>
+        <p style="font-size:12px; color:#6B7280; margin-top:-6px;">
+          Estado:
+          <span class="estado {% if orden.estado == 'Recibida' %}ok{% elif orden.estado == 'Cancelada' %}bajo{% else %}medio{% endif %}">{{ orden.estado }}</span>
+          · Creada el {{ orden.fecha_creacion|date:"d/m/Y H:i" }}
+          {% if orden.notas %}· {{ orden.notas }}{% endif %}
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Solicitado</th>
+              <th>Recibido</th>
+              <th>Pendiente</th>
+              <th>Costo unitario</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in detalles %}
+            <tr>
+              <td>{{ d.producto.nombre }}</td>
+              <td>{{ d.cantidad_solicitada }}</td>
+              <td>{{ d.cantidad_recibida }}</td>
+              <td>{{ d.cantidad_pendiente }}</td>
+              <td>RD$ {{ d.costo_unitario }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="table-total">
+          <span>Total estimado</span>
+          <strong>RD$ {{ total_estimado }}</strong>
+        </div>
+
+
+        {% if puede_gestionar_ordenes and orden.estado == 'Borrador' %}
+          <form method="post" action="{% url 'compras_orden_enviar' orden.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-add" style="margin-top: 14px;">Enviar al proveedor</button>
+          </form>
+        {% endif %}
+        {% if puede_gestionar_ordenes and orden.estado != 'Cancelada' and orden.estado != 'Recibida' %}
+          <form method="post" action="{% url 'compras_orden_cancelar' orden.pk %}" style="display:inline;"
+                onsubmit="return confirm('¿Cancelar esta orden de compra?');">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger" style="margin-top: 14px;">Cancelar orden</button>
+          </form>
+        {% endif %}
+        {% if puede_gestionar_recepciones and orden.estado == 'Enviada' or puede_gestionar_recepciones and orden.estado == 'Parcialmente recibida' %}
+          <a href="{% url 'compras_recepcion_nueva' orden.pk %}" class="btn-add" style="margin-top: 14px;">Registrar recepción</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="settings-side">
+      <div class="card">
+        <div class="card-header">
+          <h3>Recepciones</h3>
+        </div>
+        {% for r in recepciones %}
+          <p style="font-size:13px; border-bottom:1px solid #F3F4F6; padding-bottom:8px; margin-bottom:8px;">
+            Recepción #{{ r.pk }} · {{ r.fecha|date:"d/m/Y H:i" }}<br>
+            <span style="color:#6B7280; font-size:12px;">Registrada por {{ r.recibido_por.username|default:"—" }}</span>
+          </p>
+        {% empty %}
+          <p style="font-size:13px; color:#6B7280;">Todavía no hay recepciones para esta orden.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

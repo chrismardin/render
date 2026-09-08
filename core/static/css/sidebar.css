@@ -1,0 +1,81 @@
+/* ============================================================
+   ARCHIVO: sidebar.css
+   Estilos reutilizables del MENU LATERAL (SIDEBAR) y su
+   navegación. Este bloque es igual en todas las páginas del
+   sistema que incluyen <aside>...</aside> con <nav> dentro.
+
+   Migrado desde styles.css (antigua SECCION 1) para que el
+   sidebar tenga su propia hoja de estilos exclusiva.
+   ============================================================ */
+
+/* Caja completa del menú lateral (fondo oscuro, fijo a la izquierda) */
+aside {
+  width: 210px;
+  background: #0f1524;
+  color: #cfd3dc;
+  padding: 24px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El logo "Cromf Finanzas" arriba del menú -> clase .logo dentro de <aside> */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #21c99a;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Cada link del menú -> etiqueta <nav><a>...</a></nav> */
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #cfd3dc;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 10px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+/* Link resaltado (la página en la que estás parado) -> clase .active en el <a>
+   Se mantiene en verde para indicar el módulo activo. */
+nav a.active {
+  background: #10B981;
+  color: #1c2438;
+}
+
+/* Efecto al pasar el mouse por un link del menú -> verde corporativo */
+nav a:hover {
+  background: #10B981;
+  color: #1c2438;
+}
+
+/* Icono SVG de cada link (reemplaza los emojis que había antes).
+   Usa currentColor, así que hereda el mismo color/hover/activo
+   que ya tenía el texto: no se tocó ninguna regla de color. */
+nav a svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Un poco de separación extra para el link de "Configuracion" */
+.config-link {
+  margin-top: 4px;
+}

@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+{% block title %}Cromf Finanzas - Modo IA{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/impuestos_ia.css' %}">{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M9 12h.01M15 12h.01M9 16h6M12 3v4M9 3h6"/></svg> Modo IA</h1>
+  <div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div>
+</header>
+
+{% if messages %}
+<div class="module-messages">{% for message in messages %}<div class="module-message {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>
+{% endif %}
+
+{% if not resumen.disponible %}
+<div class="panel ai-status-card">
+  <h3>Predicciones todavía no disponibles</h3>
+  <p>{{ resumen.mensaje }}</p>
+  <div class="ai-command">python manage.py entrenar_modelo_ia</div>
+</div>
+{% else %}
+<section class="kpi-row ai-kpi-row">
+  <div class="kpi-card green"><div class="kpi-top"><span class="kpi-icon green">IA</span><span class="label">Ingresos Proyectados</span></div><div class="value">RD$ {{ resumen.ingresos_proyectados_30_dias|floatformat:2|intcomma }}</div><div class="sub">Próximos 30 días</div></div>
+  <div class="kpi-card orange"><div class="kpi-top"><span class="kpi-icon orange">!</span><span class="label">Por Reabastecer</span></div><div class="value">{{ resumen.total_alertas_reabastecimiento }}</div><div class="sub">Productos que requieren atención</div></div>
+  <div class="kpi-card blue"><div class="kpi-top"><span class="kpi-icon blue">#1</span><span class="label">Mayor Demanda</span></div>{% with top=resumen.top_5_productos.0 %}<div class="value ai-product-name">{{ top.producto.nombre|default:'--' }}</div><div class="sub">{{ top.proyeccion_30_dias|default:0|intcomma }} unidades / 30 días</div>{% endwith %}</div>
+</section>
+
+<div class="ai-grid">
+  <div class="panel">
+    <div class="card-header"><h3>Top 5 de demanda proyectada</h3><span class="editar-link">Modelo local</span></div>
+    <table><thead><tr><th>Producto</th><th>Stock</th><th>Proyección 30 días</th></tr></thead><tbody>
+      {% for item in resumen.top_5_productos %}<tr><td><strong>{{ item.producto.nombre }}</strong></td><td>{{ item.producto.stock }}</td><td>{{ item.proyeccion_30_dias|intcomma }} unidades</td></tr>{% empty %}<tr><td colspan="3">Sin datos.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <div class="card-header"><h3>Alertas de reabastecimiento</h3><span class="editar-link">Inventario + predicción</span></div>
+    <table><thead><tr><th>Producto</th><th>Se agota en</th><th>Sugerencia</th></tr></thead><tbody>
+      {% for item in resumen.alertas_reabastecimiento %}<tr><td><strong>{{ item.producto.nombre }}</strong></td><td>{% if item.dias_hasta_agotarse is not None %}{{ item.dias_hasta_agotarse }} días{% else %}--{% endif %}</td><td>{{ item.cantidad_sugerida_compra }} unidades</td></tr>{% empty %}<tr><td colspan="3">No hay alertas.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endif %}
+
+<div class="ai-chat-grid">
+  <div class="panel ai-question-card">
+    <div class="card-header"><div><h3>Pregúntale a Cromf IA</h3><span class="editar-link">{% if ia_api_configurada %}Asistente externo configurado{% else %}Modo local de respaldo{% endif %}</span></div></div>
+    <form method="post">{% csrf_token %}<input type="hidden" name="form_tipo" value="pregunta_ia"><div class="field-group"><label>Pregunta</label><textarea name="pregunta" rows="4" placeholder="Ej. ¿Qué producto debería reabastecer primero?" required></textarea></div><button type="submit" class="btn-add">Preguntar</button></form>
+    {% if not ia_api_configurada %}<p class="ai-note">Sin <code>ANTHROPIC_API_KEY</code>, el sistema responde con un resumen transparente basado en las predicciones locales; el resto del proyecto continúa funcionando normalmente.</p>{% endif %}
+  </div>
+  <div class="panel ai-history-card">
+    <div class="card-header"><h3>Historial de consultas</h3><span class="editar-link">Últimas 10</span></div>
+    <div class="ai-history-list">
+      {% for consulta in historial_consultas %}<article class="ai-history-item"><div class="ai-history-meta">{{ consulta.fecha|date:'d/m/Y H:i' }}</div><strong>{{ consulta.pregunta }}</strong><p>{{ consulta.respuesta }}</p></article>{% empty %}<p class="ai-note">Todavía no has realizado consultas.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

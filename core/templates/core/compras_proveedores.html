@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Proveedores{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Proveedores</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}" class="active">Proveedores</a>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Proveedores registrados</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>RNC</th>
+              <th>Contacto</th>
+              <th>Teléfono</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in proveedores %}
+            <tr>
+              <td>{{ p.nombre }}</td>
+              <td>{{ p.rnc|default:"—" }}</td>
+              <td>{{ p.contacto|default:"—" }}</td>
+              <td>{{ p.telefono|default:"—" }}</td>
+              <td><span class="estado {% if p.activo %}ok{% else %}bajo{% endif %}">{% if p.activo %}Activo{% else %}Inactivo{% endif %}</span></td>
+              <td>
+                {% if puede_gestionar %}
+                  <a href="{% url 'compras_proveedor_editar' p.pk %}" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Editar</a>
+                  <form method="post" action="{% url 'compras_proveedor_toggle' p.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="{% if p.activo %}btn-danger{% else %}btn-secundario{% endif %}" style="padding: 4px 10px; font-size: 12px;">
+                      {% if p.activo %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="color:#6B7280; font-size:13px;">Todavía no hay proveedores registrados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="settings-side">
+      {% if puede_gestionar %}
+      <div class="card">
+        <div class="card-header">
+          <h3>Nuevo proveedor</h3>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.nombre.id_for_label }}">Nombre / Razón social</label>
+              {{ form.nombre }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.rnc.id_for_label }}">RNC / Identificación</label>
+              {{ form.rnc }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.contacto.id_for_label }}">Persona de contacto</label>
+              {{ form.contacto }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+              {{ form.telefono }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.email.id_for_label }}">Correo</label>
+              {{ form.email }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+              {{ form.direccion }}
+            </div>
+          </div>
+          <button type="submit" class="btn-add" style="margin-top: 10px;">Crear proveedor</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

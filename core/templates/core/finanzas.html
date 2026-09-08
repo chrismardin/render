@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Finanzas{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Solo afecta a Finanzas: botones independientes, no una barra unida. */
+  .finanzas-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 16px;
+  }
+  .finanzas-nav .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 18px;
+    background: #fff;
+    color: #374151;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    transition: transform .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .finanzas-nav .tab-btn:hover {
+    transform: translateY(-1px);
+    border-color: #A7F3D0;
+    box-shadow: 0 4px 10px rgba(0,0,0,.06);
+  }
+  .finanzas-nav .tab-btn.active {
+    color: #047857;
+    border-color: #10B981;
+    background: #ECFDF5;
+  }
+  .finanzas-readonly-note {
+    color: #6B7280;
+    font-size: 12px;
+    margin-left: auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <header class="topbar">
+    <h1>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v22M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H7"/></svg>
+      {% if tab_activa == 'gastos' %}Gastos
+      {% elif tab_activa == 'historial' %}Historial
+      {% elif tab_activa == 'cxc' %}Cuentas por Cobrar
+      {% elif tab_activa == 'cxp' %}Cuentas por Pagar
+      {% elif tab_activa == 'cuentas' %}Cuentas
+      {% else %}Ingresos{% endif %}
+    </h1>
+    <div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div>
+  </header>
+
+  <nav class="finanzas-nav" aria-label="Secciones de Finanzas">
+    <a class="tab-btn{% if tab_activa == 'ingresos' %} active{% endif %}" data-tab="ingresos" href="{% url 'finanzas' %}?tab=ingresos">Ingresos</a>
+    <a class="tab-btn{% if tab_activa == 'gastos' %} active{% endif %}" data-tab="gastos" href="{% url 'finanzas' %}?tab=gastos">Gastos</a>
+    <a class="tab-btn{% if tab_activa == 'historial' %} active{% endif %}" data-tab="historial" href="{% url 'finanzas' %}?tab=historial">Historial</a>
+    {% if puede_ver_cxc %}<a class="tab-btn{% if tab_activa == 'cxc' %} active{% endif %}" data-tab="cxc" href="{% url 'finanzas' %}?tab=cxc">Cuentas por Cobrar</a>{% endif %}
+    {% if puede_ver_cxp %}<a class="tab-btn{% if tab_activa == 'cxp' %} active{% endif %}" data-tab="cxp" href="{% url 'finanzas' %}?tab=cxp">Cuentas por Pagar</a>{% endif %}
+    <a class="tab-btn{% if tab_activa == 'cuentas' %} active{% endif %}" data-tab="cuentas" href="{% url 'finanzas' %}?tab=cuentas">Cuentas</a>
+  </nav>
+
+  {% if tab_activa == 'ingresos' %}
+  <section class="panel">
+    <div class="panel-toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar..." onkeyup="filtrarTabla(this, 'tabla-ingresos')">
+      </div>
+      <span class="finanzas-readonly-note">Los ingresos se generan automáticamente desde Ventas y cobros de CxC.</span>
+    </div>
+    <table id="tabla-ingresos">
+      <thead><tr><th>Fecha</th><th>Categoria</th><th>Cliente</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th><th>Recibo</th></tr></thead>
+      <tbody>
+      {% for mov in ingresos %}<tr>
+        <td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td><td><a class="btn-secundario" href="{% url 'recibo_ingreso' mov.id %}">Ver recibo</a></td>
+      </tr>{% empty %}<tr><td colspan="7">Todavia no hay ingresos registrados.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <div class="table-total"><span>Total</span><span>RD$ {{ total_ingresos }}</span></div>
+  </section>
+
+  {% elif tab_activa == 'gastos' %}
+  {% if puede_crear %}
+  <section id="form-gasto" class="panel" style="display:none;">
+    <h3 style="margin-bottom:16px;">Nuevo Gasto</h3>
+    <form method="post" action="{% url 'finanzas' %}?tab=gastos">
+      {% csrf_token %}<input type="hidden" name="accion" value="registrar_gasto">
+      <div class="filters-row">
+        <div class="field-group"><label>Fecha</label>{{ form.fecha }}{% for e in form.fecha.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <div class="field-group"><label>Categoria</label>{{ form.categoria }}{% for e in form.categoria.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <div class="field-group"><label>Proveedor / Beneficiario</label>{{ form.cliente_proveedor }}{% for e in form.cliente_proveedor.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <div class="field-group"><label>Monto (RD$)</label>{{ form.monto }}{% for e in form.monto.errors %}<small>{{ e }}</small>{% endfor %}</div>
+      </div>
+      <div class="filters-row">
+        <div class="field-group"><label>Medio de Pago</label>{{ form.medio_pago }}{% for e in form.medio_pago.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <div class="field-group"><label>Cuenta</label>{{ form.cuenta }}{% for e in form.cuenta.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <div class="field-group"><label>Factura</label>{{ form.factura }}{% for e in form.factura.errors %}<small>{{ e }}</small>{% endfor %}</div>
+        <button type="submit" class="btn-add green" style="align-self:flex-end;">Guardar Gasto</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+  <section class="panel">
+    <div class="panel-toolbar">
+      <div class="search-box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar..." onkeyup="filtrarTabla(this, 'tabla-gastos')"></div>
+      {% if puede_crear %}<button type="button" class="btn-add green" onclick="toggleGasto()">+ Nuevo Gasto</button>{% endif %}
+    </div>
+    <table id="tabla-gastos"><thead><tr><th>Fecha</th><th>Categoria</th><th>Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th></tr></thead><tbody>
+      {% for mov in gastos %}<tr><td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="6">Todavia no hay gastos registrados.</td></tr>{% endfor %}
+    </tbody></table>
+    <div class="table-total"><span>Total</span><span>RD$ {{ total_gastos }}</span></div>
+  </section>
+
+  {% elif tab_activa == 'historial' %}
+  <section class="panel">
+    <div class="panel-toolbar"><div class="search-box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar en historial..." onkeyup="filtrarTabla(this, 'tabla-historial')"></div></div>
+    <table id="tabla-historial"><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoria</th><th>Cliente / Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th><th>Recibo</th></tr></thead><tbody>
+      {% for mov in historial %}<tr><td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{% if mov.tipo == "Ingreso" %}<span class="estado ok">Ingreso</span>{% else %}<span class="estado bajo">Gasto</span>{% endif %}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td><td>{% if mov.tipo == 'Ingreso' and mov.id %}<a class="btn-secundario" href="{% url 'recibo_ingreso' mov.id %}">Ver recibo</a>{% else %}--{% endif %}</td></tr>{% empty %}<tr><td colspan="8">Todavia no hay movimientos registrados.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+
+  {% elif tab_activa == 'cxc' and puede_ver_cxc %}
+  <section class="panel">
+    <div class="table-total"><span>Pendiente por cobrar</span><span>RD$ {{ total_por_cobrar }}</span></div>
+    <table><thead><tr><th>Cliente</th><th>Factura</th><th>Vencimiento</th><th>Original</th><th>Cobrado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
+      {% for cuenta in cuentas_por_cobrar %}<tr><td>{{ cuenta.cliente.nombre }}</td><td>{{ cuenta.venta.numero_factura }}</td><td>{{ cuenta.fecha_vencimiento|date:"d-m-Y" }}</td><td>RD$ {{ cuenta.importe_original }}</td><td>RD$ {{ cuenta.total_cobrado_calc }}</td><td>RD$ {{ cuenta.saldo_pendiente_calc }}</td><td>{{ cuenta.estado_calc }}</td><td><a class="btn-secundario" href="{% url 'cuenta_por_cobrar_detalle' cuenta.id %}">Ver / Cobrar</a></td></tr>{% empty %}<tr><td colspan="8">No hay cuentas por cobrar.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+
+  {% elif tab_activa == 'cxp' and puede_ver_cxp %}
+  <section class="panel">
+    <div class="table-total"><span>Pendiente por pagar</span><span>RD$ {{ total_por_pagar }}</span></div>
+    <table><thead><tr><th>Proveedor</th><th>Factura</th><th>Vencimiento</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
+      {% for compra in cuentas_por_pagar %}<tr><td>{{ compra.proveedor.nombre }}</td><td>{{ compra.numero_factura|default:"--" }}</td><td>{{ compra.fecha_vencimiento|date:"d-m-Y"|default:"--" }}</td><td>RD$ {{ compra.total }}</td><td>RD$ {{ compra.monto_pagado }}</td><td>RD$ {{ compra.saldo_pendiente }}</td><td>{{ compra.estado_cxp }}</td><td><a class="btn-secundario" href="{% url 'compras_detalle' compra.id %}">Ver / Pagar</a></td></tr>{% empty %}<tr><td colspan="8">No hay cuentas por pagar.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+
+  {% elif tab_activa == 'cuentas' %}
+  <section class="panel">
+    <table><thead><tr><th>Nombre</th><th>Tipo</th><th>Banco</th><th>Número</th><th>Saldo calculado</th></tr></thead><tbody>
+      {% for c in cuentas_financieras %}<tr><td>{{ c.nombre }}</td><td>{{ c.get_tipo_display }}</td><td>{{ c.banco|default:"--" }}</td><td>{{ c.numero_cuenta|default:"--" }}</td><td>RD$ {{ c.saldo_calc }}</td></tr>{% empty %}<tr><td colspan="5">No hay cuentas financieras.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  {% if puede_crear %}<section class="panel"><h3 style="margin-bottom:16px;">Agregar cuenta</h3><form method="post" action="{% url 'finanzas' %}?tab=cuentas">{% csrf_token %}<input type="hidden" name="accion" value="agregar_cuenta"><div class="filters-row"><div class="field-group"><label>Nombre</label>{{ form_cuenta.nombre }}</div><div class="field-group"><label>Tipo</label>{{ form_cuenta.tipo }}</div><div class="field-group"><label>Banco</label>{{ form_cuenta.banco }}</div><div class="field-group"><label>Número</label>{{ form_cuenta.numero_cuenta }}</div><button class="btn-add" type="submit" style="align-self:flex-end;">Agregar</button></div></form></section>{% endif %}
+  {% endif %}
+
+  <section class="alerts">
+    <h3>Modulo IA: Alertas Inteligentes (RF-09, RF-10)</h3>
+    <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> IA Alerta: La categoria "Venta Cuadernos" presenta mayor ingreso este mes.</p>
+    <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg> IA Recomienda: Considere optimizar el stock para el pico de ventas.</p>
+  </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleGasto() {
+    const form = document.getElementById('form-gasto');
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  }
+  function filtrarTabla(input, tablaId) {
+    const q = input.value.toLowerCase();
+    document.querySelectorAll('#' + tablaId + ' tbody tr').forEach(function (fila) {
+      fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    {% if tab_activa == 'gastos' and form.errors %}
+    const form = document.getElementById('form-gasto');
+    if (form) form.style.display = 'block';
+    {% endif %}
+  });
+</script>
+{% endblock %}

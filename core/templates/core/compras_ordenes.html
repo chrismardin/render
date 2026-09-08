@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Inventario / Compras{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      Inventario · Compras
+    </h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}" class="active">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}">Proveedores</a>
+  </div>
+
+  <div class="panel">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="section-label">Órdenes de compra</span>
+      </div>
+      {% if puede_gestionar %}
+        <a href="{% url 'compras_orden_nueva' %}" class="btn-add">Nueva orden de compra <span class="icon-circle"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></a>
+      {% endif %}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Proveedor</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Total estimado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for orden in ordenes %}
+        <tr>
+          <td>#{{ orden.pk }}</td>
+          <td>{{ orden.proveedor.nombre }}</td>
+          <td>{{ orden.fecha_creacion|date:"d/m/Y" }}</td>
+          <td>
+            <span class="estado
+              {% if orden.estado == 'Recibida' %}ok
+              {% elif orden.estado == 'Cancelada' %}bajo
+              {% else %}medio{% endif %}">
+              {{ orden.estado }}
+            </span>
+          </td>
+          <td>RD$ {{ orden.total_estimado }}</td>
+          <td><a href="{% url 'compras_orden_detalle' orden.pk %}" class="btn-secundario" style="padding: 4px 10px; font-size: 12px;">Ver</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="color:#6B7280; font-size:13px;">Todavía no hay órdenes de compra registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

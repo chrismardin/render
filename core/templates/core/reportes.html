@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+{% block title %}Cromf Finanzas - Reportes{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Reportes</h1>
+  <div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div>
+</header>
+
+<div class="tabs report-tabs">
+  <button type="button" class="{% if request.GET.tab != 'ventas' and request.GET.tab != 'inventario' %}active{% endif %}" data-report-tab="financiero">Financiero</button>
+  <button type="button" class="{% if request.GET.tab == 'ventas' %}active{% endif %}" data-report-tab="ventas">Ventas</button>
+  <button type="button" class="{% if request.GET.tab == 'inventario' %}active{% endif %}" data-report-tab="inventario">Inventario</button>
+</div>
+
+<div class="filter-bar report-filter-bar">
+  <div class="field-group">
+    <label>Periodo</label>
+    <select id="periodo-reporte">
+      <option value="mes">Este Mes</option>
+      <option value="anterior">Mes Anterior</option>
+      <option value="trimestre">Este Trimestre</option>
+      <option value="ano">Este Año</option>
+    </select>
+  </div>
+  <form id="form-reporte" method="post" class="report-filter-form">
+    {% csrf_token %}
+    <input type="hidden" id="tipo-reporte" name="tipo_reporte" value="{% if request.GET.tab == 'ventas' %}Ventas{% elif request.GET.tab == 'inventario' %}Inventario{% else %}Financiero{% endif %}">
+    <div class="field-group"><label>Desde</label><input id="fecha-desde" type="date" name="desde" value="{{ desde|date:'Y-m-d' }}"></div>
+    <div class="field-group"><label>Hasta</label><input id="fecha-hasta" type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></div>
+    <button class="btn-generar" type="submit">Generar Reporte</button>
+  </form>
+  {% if reportes_generados %}
+    {% with ultimo=reportes_generados.0 %}
+      {% if ultimo.archivo %}<a class="btn-export" href="{{ ultimo.archivo.url }}" target="_blank">↓ Exportar PDF</a>{% endif %}
+    {% endwith %}
+  {% endif %}
+</div>
+
+<section id="report-financiero" class="report-tab-content" {% if request.GET.tab == 'ventas' or request.GET.tab == 'inventario' %}style="display:none;"{% endif %}>
+  <section class="kpi-row">
+    <div class="kpi-card blue"><div class="label">Ingresos Totales</div><div class="value">RD$ {{ total_ingresos|floatformat:2|intcomma }}</div><div class="sub up">{% if ingresos_positiva %}▲{% else %}▼{% endif %} {% if tendencia_ingresos != None %}{{ tendencia_ingresos }}% Vs Periodo Anterior{% else %}Sin periodo anterior{% endif %}</div></div>
+    <div class="kpi-card orange"><div class="label">Gastos Totales</div><div class="value">RD$ {{ total_gastos|floatformat:2|intcomma }}</div><div class="sub down">{% if gastos_positiva %}▲{% else %}▼{% endif %} {% if tendencia_gastos != None %}{{ tendencia_gastos }}% Vs Periodo Anterior{% else %}Incluye nómina{% endif %}</div></div>
+    <div class="kpi-card green"><div class="label">Utilidad Neta</div><div class="value">RD$ {{ utilidad|floatformat:2|intcomma }}</div><div class="sub up">{% if utilidad_positiva %}▲{% else %}▼{% endif %} {% if tendencia_utilidad != None %}{{ tendencia_utilidad }}% Vs Periodo Anterior{% endif %}</div></div>
+  </section>
+
+  <section class="card report-chart-card">
+    <div class="card-header"><h3>Ingresos Vs Gastos Por Mes</h3><span class="editar-link">La nómina de empleados forma parte de los gastos</span></div>
+    <div class="legend"><span><i class="dot" style="background:#10B981;"></i>Ingresos</span><span><i class="dot" style="background:#EF4444;"></i>Gastos</span></div>
+    <div class="rep-chart-wrap">
+      <div class="rep-chart-yaxis">
+        {% for valor in eje_y_financiero %}<span>RD$ {{ valor|floatformat:0|intcomma }}</span>{% empty %}<span>0</span>{% endfor %}
+      </div>
+      <div class="rep-chart-bars">
+        {% for d in grafica %}
+        <div class="rep-bar-col">
+          <div class="rep-bar-pair">
+            <div class="rep-bar ingreso" style="height:{{ d.altura_ingreso }}px;" title="Ingresos: RD$ {{ d.ingresos|floatformat:2 }}"></div>
+            <div class="rep-bar gasto" style="height:{{ d.altura_gasto }}px;" title="Gastos: RD$ {{ d.gastos|floatformat:2 }}"></div>
+          </div>
+          <span class="rep-bar-values">RD$ {{ d.ingresos|floatformat:0|intcomma }} / RD$ {{ d.gastos|floatformat:0|intcomma }}</span>
+          <span class="rep-bar-label">{{ d.mes }}</span>
+        </div>
+        {% empty %}<div class="proy-empty">No hay datos para la gráfica.</div>{% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card"><div class="card-header"><h3>Reportes Generados</h3><span class="editar-link">Historial financiero</span></div>
+    <table><thead><tr><th>Nombre</th><th>Tipo</th><th>Periodo</th><th>Fecha Generación</th><th>Formato</th><th></th></tr></thead>
+    <tbody>{% for r in reportes_generados %}<tr><td>{{ r.nombre }}</td><td>{{ r.tipo }}</td><td>{{ r.fecha_desde|date:'d/m/Y' }} - {{ r.fecha_hasta|date:'d/m/Y' }}</td><td>{{ r.fecha_generacion|date:'d/m/Y' }}</td><td>{{ r.formato }}</td><td>{% if r.archivo %}<a class="btn-descargar" href="{{ r.archivo.url }}" target="_blank">Descargar</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">Todavía no se han generado reportes.</td></tr>{% endfor %}</tbody></table>
+  </section>
+</section>
+
+<section id="report-ventas" class="report-tab-content" {% if request.GET.tab != 'ventas' %}style="display:none;"{% endif %}>
+  <section class="kpi-row"><div class="kpi-card blue"><div class="label">Ventas Totales</div><div class="value">RD$ {{ total_vendido|floatformat:2|intcomma }}</div><div class="sub up">{% if vendido_positiva %}▲{% else %}▼{% endif %} {{ tendencia_vendido|default:0 }}% Vs Periodo Anterior</div></div><div class="kpi-card green"><div class="label">Cantidad de Ventas</div><div class="value">{{ cantidad_ventas }}</div><div class="sub">{% if cantidad_positiva %}▲{% else %}▼{% endif %} {{ tendencia_cantidad|default:0 }}%</div></div><div class="kpi-card orange"><div class="label">Ticket Promedio</div><div class="value">RD$ {{ ticket_promedio|floatformat:2|intcomma }}</div><div class="sub">Promedio por venta</div></div></section>
+  <section class="card"><div class="card-header"><h3>Ventas Por Mes</h3><span class="editar-link">Comportamiento del periodo</span></div><div class="report-sales-grid">{% for d in grafica_ventas %}<div class="sales-month"><span>{{ d.mes }}</span><div class="sales-bar-track"><div class="sales-bar" style="height:{{ d.altura|default:0 }}px;"></div></div><strong>RD$ {{ d.total|default:0|floatformat:0|intcomma }}</strong></div>{% empty %}<p>No hay datos suficientes.</p>{% endfor %}</div></section>
+  <section class="card"><div class="card-header"><h3>Top Productos Vendidos</h3></div><table><thead><tr><th>#</th><th>Producto</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>{% for p in top_productos_vendidos %}<tr><td>{{ forloop.counter }}</td><td>{{ p.producto.nombre }}</td><td>{{ p.unidades }}</td><td>RD$ {{ p.monto|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="4">Sin datos.</td></tr>{% endfor %}</tbody></table></section>
+</section>
+
+<section id="report-inventario" class="report-tab-content" {% if request.GET.tab != 'inventario' %}style="display:none;"{% endif %}>
+  <section class="kpi-row"><div class="kpi-card blue"><div class="label">Valor del Inventario</div><div class="value">RD$ {{ valor_total_inventario|floatformat:2|intcomma }}</div><div class="sub">Valor actual</div></div><div class="kpi-card orange"><div class="label">Bajo Stock</div><div class="value">{{ bajo_stock_count }}</div><div class="sub down">Productos que requieren atención</div></div><div class="kpi-card green"><div class="label">Entradas</div><div class="value">{{ cantidad_entradas }}</div><div class="sub up">Movimientos del periodo</div></div></section>
+  <section class="card"><div class="card-header"><h3>Movimientos de Inventario</h3></div><table><thead><tr><th>Indicador</th><th>Cantidad</th><th>Tendencia</th></tr></thead><tbody><tr><td>Entradas</td><td>{{ cantidad_entradas }}</td><td>{{ tendencia_entradas|default:0 }}%</td></tr><tr><td>Salidas</td><td>{{ cantidad_salidas }}</td><td>{{ tendencia_salidas|default:0 }}%</td></tr></tbody></table></section>
+  <section class="card"><div class="card-header"><h3>Productos Bajo Stock</h3></div><table><thead><tr><th>Producto</th><th>Stock</th><th>Mínimo</th></tr></thead><tbody>{% for p in productos_bajo_stock %}<tr><td>{{ p.nombre }}</td><td>{{ p.stock }}</td><td>{{ p.stock_minimo }}</td></tr>{% empty %}<tr><td colspan="3">No hay productos bajo stock.</td></tr>{% endfor %}</tbody></table></section>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = document.querySelectorAll('[data-report-tab]');
+  const panels = {financiero: document.getElementById('report-financiero'), ventas: document.getElementById('report-ventas'), inventario: document.getElementById('report-inventario')};
+  const tipo = document.getElementById('tipo-reporte');
+  tabs.forEach(btn => btn.addEventListener('click', function () {
+    const tab = this.dataset.reportTab;
+    tabs.forEach(b => b.classList.toggle('active', b === this));
+    Object.entries(panels).forEach(([name, panel]) => panel.style.display = name === tab ? '' : 'none');
+    tipo.value = tab === 'ventas' ? 'Ventas' : tab === 'inventario' ? 'Inventario' : 'Financiero';
+    const url = new URL(window.location.href); url.searchParams.set('tab', tab); history.replaceState(null, '', url);
+  }));
+
+  const periodo = document.getElementById('periodo-reporte');
+  const desde = document.getElementById('fecha-desde');
+  const hasta = document.getElementById('fecha-hasta');
+  if (periodo && desde && hasta) periodo.addEventListener('change', function () {
+    const now = new Date();
+    let start = new Date(now.getFullYear(), now.getMonth(), 1);
+    let end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    if (this.value === 'anterior') { start = new Date(now.getFullYear(), now.getMonth() - 1, 1); end = new Date(now.getFullYear(), now.getMonth(), 0); }
+    if (this.value === 'trimestre') { const q = Math.floor(now.getMonth()/3); start = new Date(now.getFullYear(), q*3, 1); end = new Date(now.getFullYear(), q*3+3, 0); }
+    if (this.value === 'ano') { start = new Date(now.getFullYear(), 0, 1); end = new Date(now.getFullYear(), 11, 31); }
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    desde.value = iso(start); hasta.value = iso(end);
+  });
+});
+</script>
+{% endblock %}

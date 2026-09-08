@@ -1,0 +1,226 @@
+/* ============================================================
+   CROMF FINANZAS - ESTILOS EXCLUSIVOS PARA LOGIN (login.css)
+   Adaptado del diseño de referencia (proyecto Gemini) a la
+   paleta corporativa oficial. Hoja separada de styles.css:
+   solo se carga en login.html.
+   ============================================================ */
+
+body.login-page {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #F3F4F6;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #111827;
+}
+
+/* Tarjeta principal flotante */
+.login-card {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  min-height: 520px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  margin: 20px;
+}
+
+/* ============================================================
+   COLUMNA IZQUIERDA: FORMULARIO
+   ============================================================ */
+.login-left {
+  flex: 1;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.brand-logo svg {
+  width: 24px;
+  height: 24px;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.login-header {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.login-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+/* Mensaje de error de Django (form.non_field_errors) */
+.error-message {
+  color: #EF4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  background-color: #FEF2F2;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #FCA5A5;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Aplica directamente a los <input> generados por AuthenticationForm */
+.form-group input {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 2px solid #E5E7EB;
+  font-size: 0.95rem;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s ease;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-bottom-color: #10B981;
+}
+
+/* Botón "Iniciar sesión": alineado a la izquierda de forma
+   intencional (parte de la columna vertical del formulario),
+   con tamaño consistente y estados hover/focus. */
+.btn-login {
+  margin-top: 10px;
+  padding: 12px 28px;
+  background-color: #10B981;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  align-self: flex-start;
+  min-width: 160px;
+  text-align: center;
+}
+
+.btn-login:hover {
+  background-color: #059669;
+}
+
+.btn-login:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+}
+
+.btn-login:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   COLUMNA DERECHA: ILUSTRACIÓN Y BRANDING
+   ============================================================ */
+.login-right {
+  flex: 1;
+  background: linear-gradient(135deg, #111827 0%, #1E293B 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.graphic-badge {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.graphic-badge svg {
+  width: 50px;
+  height: 50px;
+  color: #10B981;
+}
+
+.login-right h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #FFFFFF;
+}
+
+.login-right p {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #9CA3AF;
+}
+
+/* ============================================================
+   RESPONSIVE (MOVILES)
+   ============================================================ */
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column;
+    max-width: 400px;
+  }
+
+  .login-right {
+    display: none;
+  }
+
+  .login-left {
+    padding: 32px 24px;
+  }
+
+  .btn-login {
+    align-self: stretch;
+    text-align: center;
+  }
+}

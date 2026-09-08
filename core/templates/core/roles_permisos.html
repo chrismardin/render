@@ -1,0 +1,153 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Roles y Permisos{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.7 0 1.27-.4 1.51-1a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 6.2 2.2l.06.06c.46.46 1.02.7 1.62.7H9a1.65 1.65 0 0 0 1.51-1C10.8 1.4 11.5 1 12 1s1.2.4 1.49 1c.24.6.99 1 1.51 1h1.12c.6 0 1.16-.24 1.62-.70l.06-.06A2 2 0 1 1 20.8 6.2l-.06.06a1.65 1.65 0 0 0-.7 1.62V9c0 .51.39 1.04 1 1.51z"/>
+      </svg>
+      Roles y Permisos
+    </h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="margin: 16px 0;">
+      {% for message in messages %}
+        <p style="padding: 10px 14px; border-radius: 6px; font-size: 13px;
+                  {% if message.tags == 'error' %}background:#fbe1e1; color:#c0392b;
+                  {% else %}background:#dff3ea; color:#1c6b4c;{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{% url 'usuarios_lista' %}">Usuarios</a>
+    <a href="{% url 'roles_lista' %}" class="active">Roles y Permisos</a>
+    {% if puede_gestionar_recuperaciones %}<a href="{% url 'recuperacion_lista' %}">Recuperación de contraseñas</a>{% endif %}
+  </div>
+
+  <p style="color:#6B7280; font-size:13px; margin-bottom: 4px;">
+    Gestión de roles de la empresa. Crea roles personalizados y define qué puede ver y hacer cada uno.
+  </p>
+
+  <div class="settings-grid">
+
+    <!-- COLUMNA IZQUIERDA: LISTA DE ROLES -->
+    <div class="settings-side">
+      <div class="card">
+        <div class="card-header">
+          <h3>Roles</h3>
+        </div>
+
+        {% for item in roles %}
+          <a href="{% url 'roles_lista' %}?rol={{ item.objeto.pk }}"
+             class="rol-item{% if item.seleccionado %} active{% endif %}">
+            <span>{{ item.objeto.name }}</span>
+            <span class="rol-item-meta">
+              {% if item.protegido %}Sistema{% else %}{{ item.cantidad_usuarios }} usuario{{ item.cantidad_usuarios|pluralize }}{% endif %}
+            </span>
+          </a>
+        {% empty %}
+          <p style="font-size:13px; color:#6B7280;">Todavía no hay roles creados.</p>
+        {% endfor %}
+
+        <a href="{% url 'roles_crear' %}" class="btn-add" style="width: 100%; justify-content: center; margin-top: 14px;">
+          Nuevo rol <span class="icon-circle"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: PERMISOS DEL ROL SELECCIONADO -->
+    <div class="settings-main">
+      <div class="card">
+        {% if rol_seleccionado %}
+          <form method="post" action="{% url 'roles_actualizar' rol_seleccionado.pk %}">
+            {% csrf_token %}
+
+            <div class="card-header">
+              <h3>Permisos de {{ rol_seleccionado.name }}</h3>
+            </div>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label for="id_nombre_rol">Nombre del rol</label>
+                {% if rol_protegido %}
+                  <input id="id_nombre_rol" value="{{ rol_seleccionado.name }}" disabled
+                         title="Los roles del sistema no pueden renombrarse.">
+                {% else %}
+                  <input id="id_nombre_rol" name="nombre" value="{{ rol_seleccionado.name }}" required>
+                {% endif %}
+              </div>
+            </div>
+            {% if rol_protegido %}
+              <p style="font-size:12px; color:#6B7280; margin: -8px 0 14px;">
+                Este es uno de los roles originales del sistema. Su nombre no puede cambiarse, pero sus permisos sí.
+              </p>
+            {% endif %}
+
+            {% for grupo in matriz_permisos %}
+              <div class="toggle-row" style="border-bottom: none; padding-bottom: 4px; padding-top: 14px;">
+                <div style="text-transform: uppercase; letter-spacing: 0.03em; font-size: 11px; font-weight: 700; color:#6B7280;">
+                  {{ grupo.modulo }}
+                </div>
+              </div>
+              {% for item in grupo.permisos %}
+                <div class="toggle-row notification-toggle">
+                  <div>
+                    <div class="label">{{ item.etiqueta }}</div>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" name="permisos" value="{{ item.permiso.id }}" {% if item.marcado %}checked{% endif %}>
+                    <span class="switch"></span>
+                  </label>
+                </div>
+              {% endfor %}
+            {% endfor %}
+
+            <button type="submit" class="btn-add" style="margin-top: 18px;">
+              Guardar cambios
+            </button>
+          </form>
+
+          {% if not rol_protegido %}
+            <div class="danger-zone" style="margin-top: 20px;">
+              <h3>Eliminar rol</h3>
+              {% if rol_seleccionado.user_set.count > 0 %}
+                <p>
+                  No puedes eliminar este rol porque tiene {{ rol_seleccionado.user_set.count }}
+                  usuario{{ rol_seleccionado.user_set.count|pluralize }} asignado{{ rol_seleccionado.user_set.count|pluralize }}.
+                  Reasígnalos a otro rol desde Usuarios antes de eliminarlo.
+                </p>
+                <button class="btn-danger" type="button" disabled>Eliminar rol</button>
+              {% else %}
+                <p>Esta acción no se puede deshacer.</p>
+                <form method="post" action="{% url 'roles_eliminar' rol_seleccionado.pk %}"
+                      onsubmit="return confirm('¿Seguro que quieres eliminar el rol \'{{ rol_seleccionado.name }}\'? Esta acción no se puede deshacer.');">
+                  {% csrf_token %}
+                  <button class="btn-danger" type="submit">Eliminar rol</button>
+                </form>
+              {% endif %}
+            </div>
+          {% endif %}
+
+        {% else %}
+          <p style="font-size:13px; color:#6B7280;">
+            Todavía no hay roles para mostrar. Crea el primero con "Nuevo rol".
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}

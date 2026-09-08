@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Cromf Finanzas - Clientes{% endblock %}
+{% block content %}
+<header class="topbar"><h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg> Clientes</h1><div class="admin-area">{% include 'core/_perfil_dropdown.html' %}</div></header>
+<div class="tabs"><a href="{% url 'clientes' %}" class="active">Directorio General</a></div>
+{% if puede_crear %}
+<section class="panel" id="cliente-form">
+  <h3>{% if editando %}Editar cliente{% else %}Registrar cliente{% endif %}</h3>
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="accion" value="{% if editando %}editar{% else %}crear{% endif %}">
+    {% if editando %}<input type="hidden" name="cliente_id" value="{{ form.instance.pk }}">{% endif %}
+    <div class="filters-row">
+      <div class="field-group">{{ form.nombre.label_tag }}{{ form.nombre }}</div>
+      <div class="field-group">{{ form.empresa.label_tag }}{{ form.empresa }}</div>
+      <div class="field-group">{{ form.telefono.label_tag }}{{ form.telefono }}</div>
+      <div class="field-group">{{ form.tipo.label_tag }}{{ form.tipo }}</div>
+      <div class="field-group">{{ form.rnc_cedula.label_tag }}{{ form.rnc_cedula }}</div>
+      <div class="field-group">{{ form.email.label_tag }}{{ form.email }}</div>
+      <div class="field-group">{{ form.direccion.label_tag }}{{ form.direccion }}</div>
+      <div class="field-group">{{ form.condicion_fiscal.label_tag }}{{ form.condicion_fiscal }}</div>
+      <div class="field-group"><label>{{ form.activo }} Activo</label></div>
+      <button class="btn-add" type="submit">Guardar</button>
+    </div>
+  </form>
+</section>
+{% endif %}
+<div class="panel">
+  <div class="panel-toolbar"><div class="search-box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="buscar-cliente" type="text" placeholder="Buscar..." onkeyup="filtrarClientes()"></div></div>
+  <table id="tabla-clientes"><thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>RNC/Cédula</th><th>Condición fiscal</th><th>Teléfono</th><th>Última Compra</th><th>Acciones</th></tr></thead>
+  <tbody>{% for cliente in clientes %}<tr>
+    <td>{{ cliente.codigo|default:cliente.id }}</td><td>{{ cliente.nombre }}</td><td>{{ cliente.empresa|default:"--" }}</td><td>{{ cliente.rnc_cedula|default:"--" }}</td><td>{{ cliente.get_condicion_fiscal_display }}</td><td>{{ cliente.telefono|default:"--" }}</td>
+    <td>{% if cliente.ultima_compra_calc %}{{ cliente.ultima_compra_calc|date:"d/m/Y" }}{% else %}--{% endif %}</td>
+    <td>{% if puede_crear %}<a href="?editar={{ cliente.id }}" class="btn-secundario">Editar</a>
+      <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="accion" value="eliminar"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button class="btn-secundario" onclick="return confirm('¿Eliminar este cliente?')">Eliminar</button></form>{% endif %}
+      <a href="{% url 'clientes_detalle' cliente.id %}" class="btn-secundario">Ver historial</a></td>
+  </tr>{% empty %}<tr><td colspan="8">Todavía no hay clientes registrados.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}
+{% block extra_js %}<script>function filtrarClientes(){const q=document.getElementById('buscar-cliente').value.toLowerCase();document.querySelectorAll('#tabla-clientes tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');}</script>{% endblock %}

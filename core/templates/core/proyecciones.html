@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %}
+{% load static humanize %}
+
+{% block title %}Cromf Finanzas - Proyecciones{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+  <div>
+    <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 13l-5-5-3 3-4-4"/></svg> Proyecciones</h1>
+    <p class="subtitle">Resumen General De Las Proyecciones Del Negocio</p>
+  </div>
+  <div class="admin-area">
+    {% include 'core/_perfil_dropdown.html' %}
+  </div>
+</header>
+
+<section class="kpi-row">
+  <div class="kpi-card green">
+    <div class="kpi-top">
+      <span class="kpi-icon green"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v22M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H7"/></svg></span>
+      <span class="label">Ingresos Del Mes</span>
+    </div>
+    <div class="value">RD$ {{ total_ingresos_mes|floatformat:2|intcomma }}</div>
+    <div class="sub">Ingresos registrados este mes</div>
+  </div>
+
+  <div class="kpi-card red">
+    <div class="kpi-top">
+      <span class="kpi-icon red"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+      <span class="label">Gastos Operativos</span>
+    </div>
+    <div class="value">RD$ {{ total_gastos_mes|floatformat:2|intcomma }}</div>
+    <div class="sub">Gastos registrados este mes</div>
+  </div>
+
+  <div class="kpi-card blue">
+    <div class="kpi-top">
+      <span class="kpi-icon blue"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="label">Clientes Activos</span>
+    </div>
+    <div class="value">{{ clientes_activos|intcomma }}</div>
+    <div class="sub">Clientes registrados</div>
+  </div>
+
+  <div class="kpi-card orange">
+    <div class="kpi-top">
+      <span class="kpi-icon orange"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span>
+      <span class="label">Productos Proyectados</span>
+    </div>
+    <div class="value">{{ proyecciones_productos|length }}</div>
+    <div class="sub">Productos con historial de ventas</div>
+  </div>
+</section>
+
+<div class="proyecciones-grid">
+<section class="card proy-chart-card">
+  <div class="card-header proy-section-header">
+    <div>
+      <h3>Proyeccion De Ventas De Productos</h3>
+      <span class="editar-link">Basada en los últimos 90 días</span>
+    </div>
+  </div>
+
+  <div class="proy-chart-wrap">
+    <div class="proy-chart-yaxis" aria-hidden="true">
+      <span>36,000</span>
+      <span>27,000</span>
+      <span>18,000</span>
+      <span>9,000</span>
+      <span>0</span>
+    </div>
+    <div class="proy-chart-bars">
+      <div class="proy-grid-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      {% for item in top_5_proyeccion %}
+        <div class="proy-bar-col"><span class="proy-bar-value">RD$ {{ item.proyeccion_monto|floatformat:2|intcomma }}</span><div class="proy-bar art{{ forloop.counter }}" style="height:{{ item.altura_px }}px;"></div><span class="proy-bar-label">{{ item.producto.nombre|truncatechars:14 }}</span></div>
+      {% empty %}
+        <div class="proy-empty">No hay datos suficientes para generar la gráfica.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="card proy-top-card">
+  <div class="card-header proy-section-header">
+    <div>
+      <h3>Top 5 Productos Más Proyectados</h3>
+      <span class="editar-link">Productos con mayor proyección</span>
+    </div>
+  </div>
+  <div class="proy-top-table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Producto</th><th>Proyección</th><th>Porcentaje</th></tr>
+      </thead>
+      <tbody>
+        {% for item in top_5_proyeccion %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ item.producto.nombre }}</td>
+          <td><strong>RD$ {{ item.proyeccion_monto|floatformat:2|intcomma }}</strong></td>
+          <td>—</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Sin datos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+</div>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Detalle De Las Proyecciones</h3>
+    <span class="editar-link">Promedio mensual + 10%</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Promedio Mensual</th>
+        <th>Unidades Proyectadas</th>
+        <th>Monto Proyectado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in proyecciones_productos %}
+      <tr>
+        <td>{{ item.producto.nombre }}</td>
+        <td>{{ item.promedio_mensual }}</td>
+        <td>{{ item.proyeccion_unidades }}</td>
+        <td><strong>RD$ {{ item.proyeccion_monto|floatformat:2|intcomma }}</strong></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No hay ventas suficientes para generar proyecciones.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3 style="margin-bottom:14px;">Top 5 De Proyección</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Promedio Mensual</th>
+        <th>Unidades Proyectadas</th>
+        <th>Monto Proyectado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in top_5_proyeccion %}
+      <tr>
+        <td>{{ item.producto.nombre }}</td>
+        <td>{{ item.promedio_mensual }}</td>
+        <td>{{ item.proyeccion_unidades }}</td>
+        <td><strong>RD$ {{ item.proyeccion_monto|floatformat:2|intcomma }}</strong></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">Sin datos.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}
