@@ -3506,14 +3506,27 @@ def procesar_venta(request):
                 if cliente is None:
                     raise ValueError('El cliente seleccionado no existe o está inactivo.')
 
-            condicion_raw = _normalizar_texto(data.get('condicion_pago') or 'Contado')
-            condicion = 'Credito' if condicion_raw == 'credito' else 'Contado'
-            metodo_raw = _normalizar_texto(data.get('medio_pago') or data.get('metodo_pago') or 'Efectivo')
-            metodo = 'Tarjeta' if metodo_raw == 'tarjeta' else 'Efectivo'
+            # La interfaz expone una sola decisión: Efectivo, Tarjeta o Crédito.
+            # Internamente conservamos condicion_pago para la trazabilidad y CxC.
+            forma_pago_raw = _normalizar_texto(
+                data.get('forma_pago') or data.get('medio_pago') or data.get('metodo_pago') or 'Efectivo'
+            )
+            if forma_pago_raw == 'credito':
+                metodo = 'Credito'
+                condicion = 'Credito'
+            elif forma_pago_raw == 'tarjeta':
+                metodo = 'Tarjeta'
+                condicion = 'Contado'
+            else:
+                metodo = 'Efectivo'
+                condicion = 'Contado'
+
             if condicion == 'Credito' and cliente is None:
                 raise ValueError('Una venta a crédito requiere seleccionar un cliente registrado.')
 
-            tipo_comprobante = _resolver_tipo_comprobante(cliente, data.get('tipo_comprobante'))
+            # El comprobante se determina automáticamente según el cliente;
+            # ya no es una decisión manual en la pantalla de ventas.
+            tipo_comprobante = _resolver_tipo_comprobante(cliente)
             tasa_empresa = Decimal(str(DatosEmpresa.obtener().itbs_porcentaje))
             lineas = []
             subtotal_bruto = Decimal('0')
@@ -3563,7 +3576,7 @@ def procesar_venta(request):
                 condicion_pago=condicion,
                 tipo_comprobante=tipo_comprobante,
                 vendedor=request.user,
-                observaciones=str(data.get('observaciones') or '').strip()[:250],
+                observaciones='',
                 **_snapshot_cliente(cliente),
             )
 
@@ -3775,7 +3788,7 @@ def _generar_pdf_factura(venta, empresa):
     elementos.append(tabla_totales)
     elementos.append(Spacer(1, 0.25 * cm))
     elementos.append(Paragraph(
-        f'Condición de pago: {venta.get_condicion_pago_display()} · Método: {venta.get_metodo_pago_display()}'
+        f'Forma de pago: {venta.forma_pago}'
         + (f' · Vendedor: {venta.vendedor.username}' if venta.vendedor else ''), texto
     ))
     if venta.observaciones:

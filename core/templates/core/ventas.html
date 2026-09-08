@@ -114,8 +114,9 @@
       <!-- ====================================== -->
       <div class="panel-right">
         <div class="summary-row"><span>Subtotal</span><span class="subtotal">RD$ 0.00</span></div>
+        <div class="summary-row"><span>Descuento</span><span class="descuento-total">RD$ 0.00</span></div>
         <div class="summary-row"><span>ITBIS</span><span class="itbis">RD$ 0.00</span></div>
-        <div class="summary-row total"><span>Total</span><span class="total">RD$ 0.00</span></div>
+        <div class="summary-row total-row"><span>Total</span><span class="total-venta">RD$ 0.00</span></div>
         <div class="pago-section">
           <span class="label">Cliente</span>
           <select id="clienteVenta" name="cliente_id">
@@ -126,27 +127,12 @@
           </select>
         </div>
         <div class="pago-section">
-          <span class="label">Condición de pago</span>
+          <span class="label">Forma de pago</span>
           <div class="pago-options">
-            <label><input type="radio" name="condicion_pago" value="contado" checked> Contado</label>
-            <label><input type="radio" name="condicion_pago" value="credito"> Crédito</label>
+            <label><input type="radio" name="forma_pago" value="efectivo" checked> Efectivo</label>
+            <label><input type="radio" name="forma_pago" value="tarjeta"> Tarjeta</label>
+            <label><input type="radio" name="forma_pago" value="credito"> Crédito</label>
           </div>
-          <p class="venta-credito-ayuda">En ventas a crédito debe seleccionarse un cliente registrado. El saldo pasará automáticamente a Cuentas por Cobrar.</p>
-        </div>
-        <div class="pago-section">
-          <span class="label">Método de pago</span>
-          <div class="pago-options">
-            <label><input type="radio" name="pago" value="efectivo" checked> Efectivo</label>
-            <label><input type="radio" name="pago" value="tarjeta"> Tarjeta</label>
-          </div>
-        </div>
-        <div class="pago-section">
-          <span class="label">Comprobante</span>
-          <select id="tipoComprobante"><option value="">Automático</option><option value="E32">E32</option><option value="E31">E31</option><option value="E44">E44</option></select>
-        </div>
-        <div class="pago-section">
-          <span class="label">Observaciones</span>
-          <input id="observacionesVenta" type="text" maxlength="250" placeholder="Opcional">
         </div>
         <button class="btn-procesar" id="botonProcesarVenta">Procesar Venta</button>
       </div>

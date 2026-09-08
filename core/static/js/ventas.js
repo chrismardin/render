@@ -25,8 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const clientesVenta = JSON.parse(document.getElementById("clientes-data")?.textContent || "[]");
 
   const textoSubtotal = document.querySelector(".subtotal");
+  const textoDescuento = document.querySelector(".descuento-total");
   const textoItbis = document.querySelector(".itbis");
-  const textoTotal = document.querySelector(".total");
+  const textoTotal = document.querySelector(".total-venta");
   const catalogoProductos = JSON.parse(document.getElementById("catalogo-productos")?.textContent || "[]");
   // Tasa de ITBIS: viene del servidor (DatosEmpresa.itbs_porcentaje),
   // igual que el catálogo de productos. Si por algún motivo no está
@@ -532,17 +533,29 @@ document.addEventListener("DOMContentLoaded", () => {
   function recalcularResumenVenta() {
     const cliente = clientesVenta.find(c => String(c.id) === String(clienteSelect?.value || ""));
     const clienteExento = cliente?.condicion_fiscal === "Exento";
-    let subtotalVenta = 0;
+    let subtotalBruto = 0;
+    let descuentoVenta = 0;
+    let subtotalNeto = 0;
     let itbisVenta = 0;
+
     listaVentaActual.forEach(productoVenta => {
       const bruto = productoVenta.cantidad * productoVenta.precio;
-      const neto = bruto * (1 - (Number(productoVenta.descuento_porcentaje || 0) / 100));
-      subtotalVenta += neto;
+      const descuento = bruto * (Number(productoVenta.descuento_porcentaje || 0) / 100);
+      const neto = bruto - descuento;
+
+      subtotalBruto += bruto;
+      descuentoVenta += descuento;
+      subtotalNeto += neto;
+
       const catalogo = catalogoProductos.find(p => p.sku === productoVenta.sku);
       if (!clienteExento && !catalogo?.exento_itbis) itbisVenta += neto * TASA_ITBIS;
     });
-    const totalVenta = subtotalVenta + itbisVenta;
-    textoSubtotal.textContent = formatearMoneda(subtotalVenta);
+
+    const totalVenta = subtotalNeto + itbisVenta;
+    textoSubtotal.textContent = formatearMoneda(subtotalBruto);
+    textoDescuento.textContent = descuentoVenta > 0
+      ? `- ${formatearMoneda(descuentoVenta)}`
+      : formatearMoneda(0);
     textoItbis.textContent = formatearMoneda(itbisVenta);
     textoTotal.textContent = formatearMoneda(totalVenta);
   }
@@ -567,11 +580,10 @@ function procesarVenta() {
   const confirmoVenta = confirm("¿Confirmas que quieres procesar esta venta?");
   if (!confirmoVenta) return;
 
-  const medioPago = document.querySelector('input[name="pago"]:checked')?.value || "efectivo";
-  const condicionPago = document.querySelector('input[name="condicion_pago"]:checked')?.value || "contado";
+  const formaPago = document.querySelector('input[name="forma_pago"]:checked')?.value || "efectivo";
   const clienteId = document.getElementById("clienteVenta")?.value || null;
 
-  if (condicionPago === "credito" && !clienteId) {
+  if (formaPago === "credito" && !clienteId) {
     alert("Para una venta a crédito debes seleccionar un cliente registrado.");
     return;
   }
@@ -584,11 +596,8 @@ function procesarVenta() {
     },
     body: JSON.stringify({
       productos: listaVentaActual,
-      medio_pago: medioPago,
-      condicion_pago: condicionPago,
-      cliente_id: clienteId,
-      tipo_comprobante: document.getElementById("tipoComprobante")?.value || "",
-      observaciones: document.getElementById("observacionesVenta")?.value || ""
+      medio_pago: formaPago,
+      cliente_id: clienteId
     })
   })
   .then(res => res.json())

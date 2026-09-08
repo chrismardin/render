@@ -200,6 +200,7 @@ class Venta(models.Model):
     METODO_PAGO_CHOICES = [
         ('Efectivo', 'Efectivo'),
         ('Tarjeta', 'Tarjeta'),
+        ('Credito', 'Crédito'),
     ]
     CONDICION_PAGO_CHOICES = [
         ('Contado', 'Contado'),
@@ -241,6 +242,13 @@ class Venta(models.Model):
         related_name='ventas_vendidas',
     )
     observaciones = models.CharField(max_length=250, blank=True)
+
+    @property
+    def forma_pago(self):
+        """Nombre único mostrado al usuario para la forma de pago de la venta."""
+        if self.condicion_pago == 'Credito' or self.metodo_pago == 'Credito':
+            return 'Crédito'
+        return self.get_metodo_pago_display()
 
     @property
     def monto_pagado(self):
