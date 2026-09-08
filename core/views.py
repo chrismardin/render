@@ -496,7 +496,6 @@ def dashboard(request):
     movimientos.sort(key=lambda m: m.fecha, reverse=True)
 
     grafica_categorias = _grafica_ventas_por_categoria(hoy)
-    alertas = _generar_alertas_dashboard()
 
     return render(request, 'core/dashboard.html', {
         'movimientos': movimientos[:8],
@@ -508,8 +507,6 @@ def dashboard(request):
         'ventas_mes_positiva': ventas_mes_positiva,
         'nomina_mensual': _nomina_mensual_actual(),
         'grafica_categorias': grafica_categorias,
-        'alertas_stock': alertas['alertas_stock'],
-        'recomendaciones': alertas['recomendaciones'],
     })
 
 

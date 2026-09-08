@@ -153,11 +153,6 @@
   {% if puede_crear %}<section class="panel"><h3 style="margin-bottom:16px;">Agregar cuenta</h3><form method="post" action="{% url 'finanzas' %}?tab=cuentas">{% csrf_token %}<input type="hidden" name="accion" value="agregar_cuenta"><div class="filters-row"><div class="field-group"><label>Nombre</label>{{ form_cuenta.nombre }}</div><div class="field-group"><label>Tipo</label>{{ form_cuenta.tipo }}</div><div class="field-group"><label>Banco</label>{{ form_cuenta.banco }}</div><div class="field-group"><label>Número</label>{{ form_cuenta.numero_cuenta }}</div><button class="btn-add" type="submit" style="align-self:flex-end;">Agregar</button></div></form></section>{% endif %}
   {% endif %}
 
-  <section class="alerts">
-    <h3>Modulo IA: Alertas Inteligentes (RF-09, RF-10)</h3>
-    <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> IA Alerta: La categoria "Venta Cuadernos" presenta mayor ingreso este mes.</p>
-    <p><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg> IA Recomienda: Considere optimizar el stock para el pico de ventas.</p>
-  </section>
 {% endblock %}
 
 {% block extra_js %}
