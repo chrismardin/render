@@ -67,7 +67,6 @@
     <button class="tab-btn active" data-tab="stock" onclick="mostrarTab('stock', this)">Stock Actual</button>
     <button class="tab-btn" data-tab="movimiento" onclick="mostrarTab('movimiento', this)">Movimiento De Stock</button>
     <button class="tab-btn" data-tab="historial" onclick="mostrarTab('historial', this)">Historial</button>
-    {% if puede_ver_compras %}<a href="{% url 'compras_ordenes' %}">Compras y Proveedores</a>{% endif %}
   </div>
 
   <!-- ===== TAB: STOCK ACTUAL ===== -->

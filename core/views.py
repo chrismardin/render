@@ -4627,7 +4627,7 @@ def compras_registrar_pago(request, compra_id):
 # PEDIDOS DE CLIENTES
 # ============================================================
 # Vive dentro del módulo Clientes (misma navegación con pestañas que
-# ya usa Compras, ver compras_ordenes.html), no como un módulo aparte.
+# Compras se presenta como módulo independiente en el sidebar; sus rutas y lógica permanecen aquí.
 # Un pedido es una SOLICITUD de un cliente, distinta de una Venta:
 # crear o confirmar un pedido no descuenta inventario ni genera una
 # Venta automáticamente. Reutiliza Cliente y Producto sin duplicarlos,
