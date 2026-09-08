@@ -39,7 +39,7 @@
         <div class="card-header">
           <h3>Historial de compras</h3>
         </div>
-        <table>
+        <div class="responsive-table"><table>
           <thead>
             <tr>
               <th>Factura</th>
@@ -60,7 +60,7 @@
             <tr><td colspan="4" style="color:#6B7280; font-size:13px;">Este cliente todavía no tiene compras registradas.</td></tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
 
@@ -70,7 +70,7 @@
           <h3>Cuentas por cobrar</h3>
         </div>
         {% if ventas_credito_pendientes %}
-          <table>
+          <div class="responsive-table"><table>
             <thead><tr><th>Venta</th><th>Pendiente</th></tr></thead>
             <tbody>
               {% for v in ventas_credito_pendientes %}
@@ -80,7 +80,7 @@
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table></div>
           <p style="font-size:12px; color:#6B7280; margin-top:10px;">Los cobros y abonos se registran desde Finanzas → Cuentas por Cobrar.</p>
         {% else %}
           <p style="font-size:13px; color:#6B7280;">Este cliente no tiene ventas a crédito pendientes.</p>
@@ -92,7 +92,7 @@
           <h3>Pedidos pendientes</h3>
         </div>
         {% if pedidos_pendientes %}
-          <table>
+          <div class="responsive-table"><table>
             <thead>
               <tr><th>Pedido</th><th>Estado</th><th>Pendiente</th></tr>
             </thead>
@@ -105,7 +105,7 @@
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table></div>
         {% else %}
           <p style="font-size:13px; color:#6B7280;">Este cliente no tiene pedidos pendientes.</p>
         {% endif %}

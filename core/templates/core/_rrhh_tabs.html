@@ -1,7 +1,0 @@
-<div class="tabs rrhh-module-tabs" role="navigation" aria-label="Secciones de RRHH">
-  {% if perms.core.ver_empleados %}<a href="{% url 'empleados' %}" class="{% if request.resolver_match.url_name == 'empleados' %}active{% endif %}">Empleados</a>{% endif %}
-  {% if perms.core.ver_nomina %}<a href="{% url 'rrhh_nomina' %}" class="{% if request.resolver_match.url_name == 'rrhh_nomina' or request.resolver_match.url_name == 'rrhh_nomina_detalle' or request.resolver_match.url_name == 'rrhh_nomina_recibo' %}active{% endif %}">Nómina</a>{% endif %}
-  {% if perms.core.ver_empleados %}<a href="{% url 'rrhh_resumen' %}" class="{% if request.resolver_match.url_name == 'rrhh_resumen' %}active{% endif %}">Gestión RRHH</a>{% endif %}
-  {% if perms.core.ver_ausencias %}<a href="{% url 'rrhh_ausencias' %}" class="{% if request.resolver_match.url_name == 'rrhh_ausencias' %}active{% endif %}">Ausencias</a>{% endif %}
-  {% if perms.core.ver_feriados %}<a href="{% url 'rrhh_feriados' %}" class="{% if request.resolver_match.url_name == 'rrhh_feriados' %}active{% endif %}">Feriados</a>{% endif %}
-</div>

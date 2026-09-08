@@ -77,14 +77,14 @@
       </div>
       <span class="finanzas-readonly-note">Los ingresos se generan automáticamente desde Ventas y cobros de CxC.</span>
     </div>
-    <table id="tabla-ingresos">
+    <div class="responsive-table"><table id="tabla-ingresos">
       <thead><tr><th>Fecha</th><th>Categoria</th><th>Cliente</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th><th>Recibo</th></tr></thead>
       <tbody>
       {% for mov in ingresos %}<tr>
         <td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td><td><a class="btn-secundario" href="{% url 'recibo_ingreso' mov.id %}">Ver recibo</a></td>
       </tr>{% empty %}<tr><td colspan="7">Todavia no hay ingresos registrados.</td></tr>{% endfor %}
       </tbody>
-    </table>
+    </table></div>
     <div class="table-total"><span>Total</span><span>RD$ {{ total_ingresos }}</span></div>
   </section>
 
@@ -114,41 +114,41 @@
       <div class="search-box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar..." onkeyup="filtrarTabla(this, 'tabla-gastos')"></div>
       {% if puede_crear %}<button type="button" class="btn-add green" onclick="toggleGasto()">+ Nuevo Gasto</button>{% endif %}
     </div>
-    <table id="tabla-gastos"><thead><tr><th>Fecha</th><th>Categoria</th><th>Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th></tr></thead><tbody>
+    <div class="responsive-table"><table id="tabla-gastos"><thead><tr><th>Fecha</th><th>Categoria</th><th>Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th></tr></thead><tbody>
       {% for mov in gastos %}<tr><td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="6">Todavia no hay gastos registrados.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
     <div class="table-total"><span>Total</span><span>RD$ {{ total_gastos }}</span></div>
   </section>
 
   {% elif tab_activa == 'historial' %}
   <section class="panel">
     <div class="panel-toolbar"><div class="search-box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar en historial..." onkeyup="filtrarTabla(this, 'tabla-historial')"></div></div>
-    <table id="tabla-historial"><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoria</th><th>Cliente / Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th><th>Recibo</th></tr></thead><tbody>
+    <div class="responsive-table"><table id="tabla-historial"><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoria</th><th>Cliente / Proveedor</th><th>Monto (RD$)</th><th>Medio de pago</th><th>Factura</th><th>Recibo</th></tr></thead><tbody>
       {% for mov in historial %}<tr><td>{{ mov.fecha|date:"d-m-Y" }}</td><td>{% if mov.tipo == "Ingreso" %}<span class="estado ok">Ingreso</span>{% else %}<span class="estado bajo">Gasto</span>{% endif %}</td><td>{{ mov.categoria }}</td><td>{{ mov.cliente_proveedor }}</td><td>RD$ {{ mov.monto }}</td><td>{{ mov.medio_pago }}</td><td>{{ mov.factura|default:"--" }}</td><td>{% if mov.tipo == 'Ingreso' and mov.id %}<a class="btn-secundario" href="{% url 'recibo_ingreso' mov.id %}">Ver recibo</a>{% else %}--{% endif %}</td></tr>{% empty %}<tr><td colspan="8">Todavia no hay movimientos registrados.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </section>
 
   {% elif tab_activa == 'cxc' and puede_ver_cxc %}
   <section class="panel">
     <div class="table-total"><span>Pendiente por cobrar</span><span>RD$ {{ total_por_cobrar }}</span></div>
-    <table><thead><tr><th>Cliente</th><th>Factura</th><th>Vencimiento</th><th>Original</th><th>Cobrado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Cliente</th><th>Factura</th><th>Vencimiento</th><th>Original</th><th>Cobrado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
       {% for cuenta in cuentas_por_cobrar %}<tr><td>{{ cuenta.cliente.nombre }}</td><td>{{ cuenta.venta.numero_factura }}</td><td>{{ cuenta.fecha_vencimiento|date:"d-m-Y" }}</td><td>RD$ {{ cuenta.importe_original }}</td><td>RD$ {{ cuenta.total_cobrado_calc }}</td><td>RD$ {{ cuenta.saldo_pendiente_calc }}</td><td>{{ cuenta.estado_calc }}</td><td><a class="btn-secundario" href="{% url 'cuenta_por_cobrar_detalle' cuenta.id %}">Ver / Cobrar</a></td></tr>{% empty %}<tr><td colspan="8">No hay cuentas por cobrar.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </section>
 
   {% elif tab_activa == 'cxp' and puede_ver_cxp %}
   <section class="panel">
     <div class="table-total"><span>Pendiente por pagar</span><span>RD$ {{ total_por_pagar }}</span></div>
-    <table><thead><tr><th>Proveedor</th><th>Factura</th><th>Vencimiento</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Proveedor</th><th>Factura</th><th>Vencimiento</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody>
       {% for compra in cuentas_por_pagar %}<tr><td>{{ compra.proveedor.nombre }}</td><td>{{ compra.numero_factura|default:"--" }}</td><td>{{ compra.fecha_vencimiento|date:"d-m-Y"|default:"--" }}</td><td>RD$ {{ compra.total }}</td><td>RD$ {{ compra.monto_pagado }}</td><td>RD$ {{ compra.saldo_pendiente }}</td><td>{{ compra.estado_cxp }}</td><td><a class="btn-secundario" href="{% url 'compras_detalle' compra.id %}">Ver / Pagar</a></td></tr>{% empty %}<tr><td colspan="8">No hay cuentas por pagar.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </section>
 
   {% elif tab_activa == 'cuentas' %}
   <section class="panel">
-    <table><thead><tr><th>Nombre</th><th>Tipo</th><th>Banco</th><th>Número</th><th>Saldo calculado</th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Nombre</th><th>Tipo</th><th>Banco</th><th>Número</th><th>Saldo calculado</th></tr></thead><tbody>
       {% for c in cuentas_financieras %}<tr><td>{{ c.nombre }}</td><td>{{ c.get_tipo_display }}</td><td>{{ c.banco|default:"--" }}</td><td>{{ c.numero_cuenta|default:"--" }}</td><td>RD$ {{ c.saldo_calc }}</td></tr>{% empty %}<tr><td colspan="5">No hay cuentas financieras.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </section>
   {% if puede_crear %}<section class="panel"><h3 style="margin-bottom:16px;">Agregar cuenta</h3><form method="post" action="{% url 'finanzas' %}?tab=cuentas">{% csrf_token %}<input type="hidden" name="accion" value="agregar_cuenta"><div class="filters-row"><div class="field-group"><label>Nombre</label>{{ form_cuenta.nombre }}</div><div class="field-group"><label>Tipo</label>{{ form_cuenta.tipo }}</div><div class="field-group"><label>Banco</label>{{ form_cuenta.banco }}</div><div class="field-group"><label>Número</label>{{ form_cuenta.numero_cuenta }}</div><button class="btn-add" type="submit" style="align-self:flex-end;">Agregar</button></div></form></section>{% endif %}
   {% endif %}

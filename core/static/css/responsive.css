@@ -1,0 +1,520 @@
+/* ============================================================
+   RESPONSIVE GLOBAL - CROMF FINANZAS
+   Solo adapta la interfaz a tablet/movil. No cambia la logica,
+   datos, rutas ni el diseño de escritorio.
+   ============================================================ */
+
+html,
+body {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.mobile-menu-btn,
+.mobile-sidebar-overlay {
+  display: none;
+}
+
+.responsive-table {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Evita que hijos flex/grid obliguen a crecer el viewport. */
+main,
+main > *,
+.card,
+.panel,
+.settings-main,
+.settings-side,
+.panel-left,
+.panel-right {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Sidebar como menu lateral deslizable en tablet/movil. */
+  aside {
+    width: min(280px, 84vw);
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    z-index: 3000;
+    box-shadow: 12px 0 30px rgba(15, 23, 42, .22);
+  }
+
+  aside.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #DDE3EA;
+    border-radius: 10px;
+    background: #FFFFFF;
+    color: #0F1524;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, .12);
+    z-index: 3200;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  body.sidebar-open .mobile-menu-btn {
+    left: min(222px, calc(84vw - 58px));
+    color: #FFFFFF;
+    background: #10B981;
+    border-color: #10B981;
+  }
+
+  .mobile-sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .42);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .2s ease, visibility .2s ease;
+    z-index: 2900;
+  }
+
+  body.sidebar-open {
+    overflow: hidden;
+  }
+
+  body.sidebar-open .mobile-sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  main {
+    margin-left: 0;
+    width: 100%;
+    min-height: 100vh;
+    padding: 68px 16px 24px;
+  }
+
+  header.topbar,
+  header.topbar.with-subtitle {
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  header.topbar h1 {
+    min-width: 0;
+    font-size: 20px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  header.topbar p.subtitle {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+
+  .admin-area {
+    margin-left: auto;
+    flex: 0 0 auto;
+  }
+
+  .settings-grid,
+  .ventas-panel {
+    flex-direction: column;
+  }
+
+  .panel-right {
+    flex-basis: auto;
+    width: 100%;
+    border-left: 0;
+    border-top: 1px solid #eee;
+    padding: 18px 0 0;
+  }
+
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .dash-chart-wrap,
+  .proy-chart-wrap,
+  .rep-chart-wrap,
+  .report-sales-grid {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dash-chart-bars {
+    min-width: 420px;
+  }
+
+  .proy-chart-bars,
+  .rep-chart-bars {
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    padding: 66px 12px 22px;
+  }
+
+  .logo {
+    margin-bottom: 22px;
+  }
+
+  header.topbar,
+  header.topbar.with-subtitle {
+    flex-wrap: wrap;
+  }
+
+  .admin-area {
+    margin-left: auto;
+  }
+
+  .profile-trigger {
+    gap: 5px;
+    padding: 2px 4px;
+  }
+
+  .profile-trigger .user-info {
+    display: none;
+  }
+
+  .profile-trigger .chevron {
+    width: 12px;
+    height: 12px;
+  }
+
+  .dropdown-menu {
+    position: fixed;
+    top: 62px;
+    right: 12px;
+    min-width: 190px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .section-title {
+    font-size: 19px;
+    margin-bottom: 10px;
+  }
+
+  .tabs,
+  .tabs-pill,
+  .accounting-module-tabs,
+  .rrhh-tabs,
+  .employee-tabs,
+  .report-tabs {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tabs button,
+  .tabs a,
+  .tabs-pill button,
+  .accounting-module-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .accounting-module-tab {
+    min-width: auto;
+  }
+
+  .kpi-row {
+    gap: 10px;
+    margin: 12px 0 16px;
+  }
+
+  .kpi-card,
+  .accounting-kpi-row .kpi-card,
+  .payroll-kpi-row .kpi-card,
+  .rrhh-secondary-kpis .kpi-card {
+    flex: 1 1 100%;
+    min-width: 0;
+    min-height: 112px;
+    padding: 16px;
+  }
+
+  .kpi-card .value,
+  .accounting-kpi-row .value,
+  .payroll-kpi-row .value,
+  .tax-kpi-row .value,
+  .ai-kpi-row .value {
+    font-size: clamp(20px, 7vw, 25px);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .card,
+  .panel {
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .card-header,
+  .panel-toolbar,
+  .rrhh-panel-heading,
+  .accounting-panel-header,
+  .payroll-summary {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .panel-toolbar,
+  .card-header {
+    align-items: stretch;
+  }
+
+  .panel-toolbar > *,
+  .panel-toolbar-left,
+  .search-box {
+    max-width: 100%;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .panel-toolbar .btn-add,
+  .panel-toolbar-left + .btn-add {
+    justify-content: center;
+  }
+
+  .filters-row,
+  .ventas-fields-row,
+  .form-row,
+  .tax-filter-form,
+  .report-filter-form,
+  .rrhh-inline-form {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .filters-row .field-group,
+  .ventas-fields-row .field-group,
+  .ventas-panel .field-group.sku,
+  .field-group.sku,
+  .field-group.producto,
+  .field-group.cantidad,
+  .field-group.precio,
+  .tax-filter-form .field-group,
+  .report-filter-form .field-group,
+  .rrhh-inline-form .field-group {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea,
+  main input:not([type="checkbox"]):not([type="radio"]),
+  main select,
+  main textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .productos-sugerencias {
+    min-width: 0;
+    width: 100%;
+    max-width: calc(100vw - 48px);
+  }
+
+  .pago-options,
+  .payroll-actions,
+  .payroll-row-actions,
+  .module-form-actions {
+    flex-wrap: wrap;
+  }
+
+  .settings-grid {
+    gap: 14px;
+  }
+
+  .profile-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .btn-photo {
+    margin-left: 0;
+  }
+
+  .toggle-row {
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  /* Tablas: permanecen completas y se desplazan dentro de su
+     propia zona, sin ensanchar toda la pagina. */
+  .responsive-table,
+  .table-scroll,
+  .table-wrap,
+  .rrhh-table-scroll,
+  .proy-top-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .responsive-table > table {
+    min-width: 680px;
+  }
+
+  .responsive-table > table.rrhh-wide-table {
+    min-width: 980px;
+  }
+
+  .responsive-table > table.rrhh-detail-table {
+    min-width: 1280px;
+  }
+
+  table th,
+  table td {
+    padding: 9px 8px;
+  }
+
+  .table-total,
+  .balance-line,
+  .summary-row,
+  .resume-line {
+    gap: 10px;
+  }
+
+  .module-modal {
+    padding: 10px;
+  }
+
+  .module-modal-dialog {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+    padding: 14px;
+  }
+
+  .module-form-actions {
+    justify-content: stretch;
+  }
+
+  .module-form-actions > * {
+    flex: 1 1 140px;
+  }
+
+  .ai-command {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .ai-product-name {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  header.topbar h1 {
+    font-size: 18px;
+  }
+
+  .mobile-menu-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .card,
+  .panel {
+    padding: 14px;
+  }
+
+  .btn-add,
+  .btn-guardar,
+  .btn-generar,
+  .btn-export,
+  .filter-bar .btn-secundario,
+  .filter-bar .btn-add,
+  .ventas-fields-row .btn-add,
+  .rrhh-inline-form .btn-add,
+  .tax-filter-form .btn-add,
+  .report-filter-form .btn-add {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .form-row {
+    margin-bottom: 10px;
+  }
+
+  .btn-secundario,
+  .btn-export {
+    margin-left: 0;
+  }
+
+  .accounting-content-grid,
+  .payroll-content-grid,
+  .proyecciones-grid,
+  .ai-grid,
+  .ai-chat-grid,
+  .employee-form-grid,
+  .rrhh-employee-form-grid,
+  .payroll-detail-grid,
+  .receivable-modal-summary,
+  .module-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .payroll-summary strong {
+    font-size: 23px;
+  }
+
+  .table-total,
+  .balance-line,
+  .summary-row,
+  .resume-line {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .alerts {
+    padding: 14px;
+  }
+
+  .alerts p {
+    align-items: flex-start;
+  }
+}

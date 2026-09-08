@@ -29,15 +29,15 @@
 <div class="ai-grid">
   <div class="panel">
     <div class="card-header"><h3>Top 5 de demanda proyectada</h3><span class="editar-link">Modelo local</span></div>
-    <table><thead><tr><th>Producto</th><th>Stock</th><th>Proyección 30 días</th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Producto</th><th>Stock</th><th>Proyección 30 días</th></tr></thead><tbody>
       {% for item in resumen.top_5_productos %}<tr><td><strong>{{ item.producto.nombre }}</strong></td><td>{{ item.producto.stock }}</td><td>{{ item.proyeccion_30_dias|intcomma }} unidades</td></tr>{% empty %}<tr><td colspan="3">Sin datos.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </div>
   <div class="panel">
     <div class="card-header"><h3>Alertas de reabastecimiento</h3><span class="editar-link">Inventario + predicción</span></div>
-    <table><thead><tr><th>Producto</th><th>Se agota en</th><th>Sugerencia</th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Producto</th><th>Se agota en</th><th>Sugerencia</th></tr></thead><tbody>
       {% for item in resumen.alertas_reabastecimiento %}<tr><td><strong>{{ item.producto.nombre }}</strong></td><td>{% if item.dias_hasta_agotarse is not None %}{{ item.dias_hasta_agotarse }} días{% else %}--{% endif %}</td><td>{{ item.cantidad_sugerida_compra }} unidades</td></tr>{% empty %}<tr><td colspan="3">No hay alertas.</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </div>
 </div>
 {% endif %}

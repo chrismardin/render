@@ -48,7 +48,7 @@
           <p style="font-size:13px; color:#374151;">{{ pedido.observaciones }}</p>
         {% endif %}
 
-        <table>
+        <div class="responsive-table"><table>
           <thead>
             <tr>
               <th>Producto</th>
@@ -71,7 +71,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
 
         <div class="table-total">
           <span>Total</span>
@@ -130,7 +130,7 @@
           <div class="card-header">
             <h3>Ventas generadas de este pedido</h3>
           </div>
-          <table>
+          <div class="responsive-table"><table>
             <thead>
               <tr><th>Venta</th><th>Fecha</th><th>Total</th></tr>
             </thead>
@@ -143,7 +143,7 @@
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table></div>
         </div>
       {% endif %}
     </div>

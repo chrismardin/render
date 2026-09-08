@@ -89,7 +89,7 @@
     </div>
   </div>
   <div class="proy-top-table-wrap">
-    <table>
+    <div class="responsive-table"><table>
       <thead>
         <tr><th>#</th><th>Producto</th><th>Proyección</th><th>Porcentaje</th></tr>
       </thead>
@@ -105,7 +105,7 @@
         <tr><td colspan="4">Sin datos.</td></tr>
         {% endfor %}
       </tbody>
-    </table>
+    </table></div>
   </div>
 </section>
 </div>
@@ -115,7 +115,7 @@
     <h3>Detalle De Las Proyecciones</h3>
     <span class="editar-link">Promedio mensual + 10%</span>
   </div>
-  <table>
+  <div class="responsive-table"><table>
     <thead>
       <tr>
         <th>Producto</th>
@@ -136,12 +136,12 @@
       <tr><td colspan="4">No hay ventas suficientes para generar proyecciones.</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 </section>
 
 <section class="card">
   <h3 style="margin-bottom:14px;">Top 5 De Proyección</h3>
-  <table>
+  <div class="responsive-table"><table>
     <thead>
       <tr>
         <th>Producto</th>
@@ -162,7 +162,7 @@
       <tr><td colspan="4">Sin datos.</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 </section>
 
 {% endblock %}

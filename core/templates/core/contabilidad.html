@@ -62,7 +62,7 @@
         {% if ver_todos %}<a href="{% url 'contabilidad' %}" class="btn-secundario">Ver recientes</a>{% else %}<a href="?movimientos=todos" class="btn-secundario">Ver todos</a>{% endif %}
       </div>
       <div class="table-scroll">
-        <table class="accounting-table">
+        <div class="responsive-table"><table class="accounting-table">
           <thead><tr><th>Fecha</th><th>Descripción</th><th>Tipo</th><th>Monto</th></tr></thead>
           <tbody>
           {% for movimiento in movimientos_recientes %}
@@ -74,7 +74,7 @@
             </tr>
           {% empty %}<tr><td colspan="4">No hay movimientos registrados.</td></tr>{% endfor %}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
 
@@ -109,7 +109,7 @@
       <strong class="receivables-total">RD$ {{ cuentas_por_cobrar|floatformat:2|intcomma }}</strong>
     </div>
     <div class="table-scroll">
-      <table class="accounting-table receivables-table">
+      <div class="responsive-table"><table class="accounting-table receivables-table">
         <thead><tr><th>Venta</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Cobrado</th><th>Pendiente</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody>
           {% for venta in ventas_credito_pendientes %}
@@ -127,7 +127,7 @@
           <tr><td colspan="8">No hay ventas a crédito pendientes. Cuentas por Cobrar está al día.</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </section>
 </section>
@@ -152,7 +152,7 @@
         </div>
       </div>
       <div class="table-scroll">
-        <table id="tabla-nomina" class="payroll-table">
+        <div class="responsive-table"><table id="tabla-nomina" class="payroll-table">
           <thead><tr><th>Empleado</th><th>Puesto</th><th>Salario (RD$)</th><th>Fecha de Pago</th><th>Estado</th><th>Acción</th></tr></thead>
           <tbody>
           {% for fila in nomina_detalle %}
@@ -162,7 +162,7 @@
             </tr>
           {% empty %}<tr><td colspan="6">No hay empleados activos en la nómina.</td></tr>{% endfor %}
           </tbody>
-        </table>
+        </table></div>
       </div>
       <p class="table-footnote">Mostrando {{ nomina_detalle|length }} empleados activos</p>
     </div>
@@ -182,7 +182,7 @@
   {% if historial_nomina_activo %}
   <div class="panel payroll-history-panel" id="historial-nomina">
     <div class="card-header"><h3>Historial de Pagos de Nómina</h3><a class="btn-secundario" href="?tab=nomina">Cerrar</a></div>
-    <div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Empleado</th><th>Monto</th><th>Medio de Pago</th><th>Referencia</th></tr></thead><tbody>{% for pago in historial_nomina %}<tr><td>{{ pago.fecha|date:"d-m-Y" }}</td><td>{{ pago.cliente_proveedor|title }}</td><td>RD$ {{ pago.monto|floatformat:2|intcomma }}</td><td>{{ pago.medio_pago|default:"--" }}</td><td>{{ pago.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="5">Todavía no hay pagos de nómina registrados.</td></tr>{% endfor %}</tbody></table></div>
+    <div class="table-scroll"><div class="responsive-table"><table><thead><tr><th>Fecha</th><th>Empleado</th><th>Monto</th><th>Medio de Pago</th><th>Referencia</th></tr></thead><tbody>{% for pago in historial_nomina %}<tr><td>{{ pago.fecha|date:"d-m-Y" }}</td><td>{{ pago.cliente_proveedor|title }}</td><td>RD$ {{ pago.monto|floatformat:2|intcomma }}</td><td>{{ pago.medio_pago|default:"--" }}</td><td>{{ pago.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="5">Todavía no hay pagos de nómina registrados.</td></tr>{% endfor %}</tbody></table></div></div>
   </div>
   {% endif %}
 
@@ -192,7 +192,7 @@
     <div class="payroll-detail-grid"><div><span>Puesto</span><strong>{{ detalle_empleado.puesto|title }}</strong></div><div><span>Salario</span><strong>RD$ {{ detalle_empleado.salario|floatformat:2|intcomma }}</strong></div><div><span>Pagado este mes</span><strong class="soft-green-text">RD$ {{ detalle_pagado_mes|floatformat:2|intcomma }}</strong></div><div><span>Pendiente</span><strong class="soft-orange-text">RD$ {{ detalle_pendiente_mes|floatformat:2|intcomma }}</strong></div></div>
     {% if puede_crear and detalle_pendiente_mes > 0 %}<button type="button" class="btn-add payroll-detail-pay" data-pay-employee="{{ detalle_empleado.id }}">Pagar saldo pendiente</button>{% endif %}
     <h4 class="payroll-detail-subtitle">Pagos registrados</h4>
-    <div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Monto</th><th>Medio de Pago</th><th>Referencia</th></tr></thead><tbody>{% for pago in detalle_pagos %}<tr><td>{{ pago.fecha|date:"d-m-Y" }}</td><td>RD$ {{ pago.monto|floatformat:2|intcomma }}</td><td>{{ pago.medio_pago|default:"--" }}</td><td>{{ pago.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="4">Este empleado todavía no tiene pagos registrados.</td></tr>{% endfor %}</tbody></table></div>
+    <div class="table-scroll"><div class="responsive-table"><table><thead><tr><th>Fecha</th><th>Monto</th><th>Medio de Pago</th><th>Referencia</th></tr></thead><tbody>{% for pago in detalle_pagos %}<tr><td>{{ pago.fecha|date:"d-m-Y" }}</td><td>RD$ {{ pago.monto|floatformat:2|intcomma }}</td><td>{{ pago.medio_pago|default:"--" }}</td><td>{{ pago.factura|default:"--" }}</td></tr>{% empty %}<tr><td colspan="4">Este empleado todavía no tiene pagos registrados.</td></tr>{% endfor %}</tbody></table></div></div>
   </div>
   {% endif %}
 </section>

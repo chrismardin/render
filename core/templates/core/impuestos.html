@@ -68,7 +68,7 @@
         <button class="btn-secundario" type="submit">Aplicar período</button>
       </form>
     </div>
-    <table>
+    <div class="responsive-table"><table>
       <thead><tr><th>Concepto</th><th>Monto</th></tr></thead>
       <tbody>
         <tr><td>Ventas gravadas (subtotal)</td><td>RD$ {{ datos_itbis.ventas_gravadas|floatformat:2|intcomma }}</td></tr>
@@ -78,7 +78,7 @@
         <tr><td>(-) Retención tarjetas 2% (informativa)</td><td>RD$ {{ datos_itbis.retencion_tarjetas|floatformat:2|intcomma }}</td></tr>
         <tr class="tax-total-row"><td><strong>ITBIS neto después de retención</strong></td><td><strong>RD$ {{ datos_itbis.itbis_neto_despues_retencion|floatformat:2|intcomma }}</strong></td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="tax-note">Estimación administrativa basada en las ventas y compras registradas en el sistema. La declaración fiscal definitiva debe validarse con los comprobantes y criterios contables correspondientes.</p>
   </div>
 </section>
@@ -91,7 +91,7 @@
       <form method="post">{% csrf_token %}<input type="hidden" name="desde" value="{{ desde|date:'Y-m-d' }}"><input type="hidden" name="hasta" value="{{ hasta|date:'Y-m-d' }}"><button type="submit" class="btn-add">Generar Reporte PDF</button></form>
       {% endif %}
     </div>
-    <table>
+    <div class="responsive-table"><table>
       <thead><tr><th>Concepto</th><th>Monto</th></tr></thead>
       <tbody>
         <tr><td>Ingresos del año</td><td>RD$ {{ datos_isr.total_ingresos_anio|floatformat:2|intcomma }}</td></tr>
@@ -101,16 +101,16 @@
         <tr><td>ISR liquidado año anterior</td><td>RD$ {{ empresa.isr_ano_anterior|floatformat:2|intcomma }}</td></tr>
         <tr><td>Anticipo mensual estimado (1/12)</td><td>RD$ {{ anticipo_mensual|floatformat:2|intcomma }}</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="tax-note">El valor del ISR del año anterior se configura en Configuración → Datos de la Empresa.</p>
   </div>
 
   {% if reportes_impuestos %}
   <div class="panel">
     <div class="card-header"><h3>Reportes de Impuestos</h3><span class="editar-link">Últimos 10</span></div>
-    <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Archivo</th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Nombre</th><th>Fecha</th><th>Archivo</th></tr></thead><tbody>
       {% for r in reportes_impuestos %}<tr><td>{{ r.nombre }}</td><td>{{ r.fecha_generacion|date:'d/m/Y H:i' }}</td><td>{% if r.archivo %}<a class="btn-secundario" href="{{ r.archivo.url }}" target="_blank">Descargar</a>{% endif %}</td></tr>{% endfor %}
-    </tbody></table>
+    </tbody></table></div>
   </div>
   {% endif %}
 </section>
@@ -130,14 +130,14 @@
       <button class="btn-add green" type="submit" formaction="{% url 'impuestos_607_txt' %}">Descargar TXT</button>
       <button class="btn-secundario" type="submit" formaction="{% url 'impuestos_607_pdf' %}">PDF de revisión</button>
     </form>
-    <table>
+    <div class="responsive-table"><table>
       <thead><tr><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>RNC/Cédula</th><th>Subtotal</th><th>ITBIS</th><th>Total</th></tr></thead>
       <tbody>
       {% for v in ventas_607 %}
         <tr><td>{{ v.tipo_comprobante }}-{{ v.numero_factura }}</td><td>{{ v.fecha|date:'d/m/Y' }}</td><td>{{ v.cliente_nombre|default:'Consumidor final' }}</td><td>{{ v.cliente_rnc_cedula|default:'--' }}</td><td>RD$ {{ v.subtotal|floatformat:2|intcomma }}</td><td>RD$ {{ v.itbs|floatformat:2|intcomma }}</td><td>RD$ {{ v.total|floatformat:2|intcomma }}</td></tr>
       {% empty %}<tr><td colspan="7">No hay ventas en el período.</td></tr>{% endfor %}
       </tbody>
-    </table>
+    </table></div>
   </div>
 </section>
 
@@ -145,7 +145,7 @@
   <div class="panel">
     <div class="card-header"><div><h3>Resumen 606 — Compras registradas</h3><span class="editar-link">Preparación interna desde Compras + Proveedores</span></div></div>
     <p class="tax-note">Este resumen aprovecha el módulo de Compras de Mónica. Muestra RNC, factura, subtotal e ITBIS de las compras, pero no se presenta como archivo oficial 606 porque el ERP todavía no captura todos los campos fiscales requeridos para ese envío.</p>
-    <table>
+    <div class="responsive-table"><table>
       <thead><tr><th>Fecha</th><th>Proveedor</th><th>RNC</th><th>Factura/NCF</th><th>Subtotal</th><th>ITBIS</th><th>Total</th></tr></thead>
       <tbody>
       {% for c in compras_606 %}
@@ -153,7 +153,7 @@
       {% empty %}<tr><td colspan="7">No hay compras registradas en el período.</td></tr>{% endfor %}
       </tbody>
       <tfoot><tr><td colspan="4"><strong>Totales</strong></td><td><strong>RD$ {{ totales_606.subtotal|floatformat:2|intcomma }}</strong></td><td><strong>RD$ {{ totales_606.itbis|floatformat:2|intcomma }}</strong></td><td><strong>RD$ {{ totales_606.total|floatformat:2|intcomma }}</strong></td></tr></tfoot>
-    </table>
+    </table></div>
   </div>
 </section>
 {% endblock %}

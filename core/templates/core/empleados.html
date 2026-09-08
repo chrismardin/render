@@ -67,7 +67,7 @@
         <button type="button" class="btn-add" id="btn-nuevo-empleado">+ Nuevo empleado</button>
       {% endif %}
     </div>
-    <table id="tabla-empleados">
+    <div class="responsive-table"><table id="tabla-empleados">
       <thead><tr><th>ID</th><th>Nombre</th><th>Puesto</th><th>Departamento</th><th>Área</th><th>Tipo</th><th>Nómina</th><th>Nivel académico</th><th>Teléfono</th><th>Fecha Ingreso</th><th>Salario (RD$)</th><th>Estado</th>{% if puede_crear %}<th>Acciones</th>{% endif %}</tr></thead>
       <tbody>
       {% for empleado in empleados %}
@@ -97,7 +97,7 @@
         <tr><td colspan="13">Todavía no hay empleados registrados.</td></tr>
       {% endfor %}
       </tbody>
-    </table>
+    </table></div>
   </div>
 </section>
 

@@ -87,7 +87,7 @@
         </button>
       </div>
 
-      <table id="tabla-stock">
+      <div class="responsive-table"><table id="tabla-stock">
         <thead>
           <tr>
             <th>SKU/Cod</th>
@@ -140,7 +140,7 @@
           {% endfor %}
           {# fin del {% for producto in productos %} #}
         </tbody>
-      </table>
+      </table></div>
     </div>
 
       <!-- ============================================================
@@ -202,7 +202,7 @@
 
     <div class="panel">
       <h3 style="margin-bottom:16px;">Ultimos Movimientos</h3>
-      <table>
+      <div class="responsive-table"><table>
         <thead>
           <tr>
             <th>Fecha</th>
@@ -233,7 +233,7 @@
           </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </section>
 
@@ -245,7 +245,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <input type="text" placeholder="Buscar en historial...">
         </div>
       </div>
-      <table>
+      <div class="responsive-table"><table>
         <thead>
           <tr>
             <th>Fecha</th>
@@ -278,7 +278,7 @@
           </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </section>
 

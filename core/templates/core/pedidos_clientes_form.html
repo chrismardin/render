@@ -67,7 +67,7 @@
       </div>
 
       {{ formset.management_form }}
-      <table data-lineas-formset data-catalogo="catalogo-precios" data-campo-precio="precio_unitario" data-total-target="#totalPedidoEstimado">
+      <div class="responsive-table"><table data-lineas-formset data-catalogo="catalogo-precios" data-campo-precio="precio_unitario" data-total-target="#totalPedidoEstimado">
         <thead>
           <tr>
             <th>Producto</th>
@@ -86,7 +86,7 @@
           </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       {% if formset.non_form_errors %}
         <span class="form-error">{{ formset.non_form_errors.0 }}</span>
       {% endif %}

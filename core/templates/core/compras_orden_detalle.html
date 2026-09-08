@@ -44,7 +44,7 @@
           {% if orden.notas %}· {{ orden.notas }}{% endif %}
         </p>
 
-        <table>
+        <div class="responsive-table"><table>
           <thead>
             <tr>
               <th>Producto</th>
@@ -65,7 +65,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
 
         <div class="table-total">
           <span>Total estimado</span>
