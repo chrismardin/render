@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - Editar Proveedor{% endblock %}
+
+{% block content %}
+
+  <header class="topbar">
+    <h1>Editar Proveedor</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="tabs">
+    <a href="{% url 'compras_ordenes' %}">Órdenes de compra</a>
+    <a href="{% url 'compras_recepciones' %}">Recepciones</a>
+    <a href="{% url 'compras_lista' %}">Compras</a>
+    <a href="{% url 'compras_proveedores' %}" class="active">Proveedores</a>
+  </div>
+
+  <div class="panel">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.nombre.id_for_label }}">Nombre / Razón social</label>
+          {{ form.nombre }}
+        </div>
+        <div class="field-group">
+          <label for="{{ form.rnc.id_for_label }}">RNC / Identificación</label>
+          {{ form.rnc }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.contacto.id_for_label }}">Persona de contacto</label>
+          {{ form.contacto }}
+        </div>
+        <div class="field-group">
+          <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+          {{ form.telefono }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="{{ form.email.id_for_label }}">Correo</label>
+          {{ form.email }}
+        </div>
+        <div class="field-group">
+          <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+          {{ form.direccion }}
+        </div>
+      </div>
+      <button type="submit" class="btn-add" style="margin-top: 14px;">Guardar cambios</button>
+    </form>
+    <p style="margin-top: 16px; font-size: 12px;">
+      <a href="{% url 'compras_proveedores' %}">← Volver a Proveedores</a>
+    </p>
+  </div>
+
+{% endblock %}

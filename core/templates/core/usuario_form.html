@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Cromf Finanzas - {% if modo == 'crear' %}Crear Usuario{% else %}Editar Usuario{% endif %}{% endblock %}
+
+{% block content %}
+
+    <header class="topbar">
+    <h1><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> {% if modo == 'crear' %}Crear Usuario{% else %}Editar Usuario{% endif %}</h1>
+    <div class="admin-area">
+      {% include 'core/_perfil_dropdown.html' %}
+    </div>
+  </header>
+
+  <div class="panel user-form-panel">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <p style="color: #c0392b; font-size: 13px; margin-bottom: 12px;">
+          {{ form.non_field_errors.0 }}
+        </p>
+      {% endif %}
+
+      <div class="field-group" style="margin-bottom: 14px;">
+        <label for="{{ form.username.id_for_label }}">Usuario</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <p style="color: #c0392b; font-size: 12px;">{{ form.username.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="field-group" style="margin-bottom: 14px;">
+        <label for="{{ form.grupo.id_for_label }}">Rol</label>
+        {{ form.grupo }}
+        {% if form.grupo.errors %}
+          <p style="color: #c0392b; font-size: 12px;">{{ form.grupo.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {% if modo == 'crear' %}
+        <div class="field-group" style="margin-bottom: 14px;">
+          <label for="{{ form.password1.id_for_label }}">Contraseña</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <p style="color: #c0392b; font-size: 12px;">{{ form.password1.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="field-group" style="margin-bottom: 14px;">
+          <label for="{{ form.password2.id_for_label }}">Confirmar contraseña</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <p style="color: #c0392b; font-size: 12px;">{{ form.password2.errors.0 }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn-guardar" style="width: 100%;">
+        {% if modo == 'crear' %}Crear usuario{% else %}Guardar cambios{% endif %}
+      </button>
+    </form>
+
+    {% if modo == 'editar' %}
+      <p style="margin-top: 16px; font-size: 12px;">
+        <a href="{% url 'usuarios_cambiar_password' usuario_editado.pk %}">Cambiar contraseña de este usuario</a>
+      </p>
+    {% endif %}
+
+    <p style="margin-top: 10px; font-size: 12px;">
+      <a href="{% url 'usuarios_lista' %}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:-1px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Volver a Usuarios</a>
+    </p>
+  </div>
+
+{% endblock %}
